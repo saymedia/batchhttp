@@ -44,7 +44,7 @@ class HTTPRequest(object):
             self.version = parts[2]
         except IndexError:
             raise BadRequestException()
-        
+
         line = lines.pop(0)
         # IE sends an extraneous empty line (\r\n) after a POST request;
         # ignore such a line, but only once.
@@ -77,7 +77,7 @@ class HTTPRequest(object):
         elif header == 'content-type':
             self.content_type = value
         self.headers.append((header, data))
-    
+
     def __str__(self):
         command = "%s %s %s" % (self.command, self.path, self.version)
         headers = "\r\n".join(["%s: %s" % (header, value) for header, value in self.headers])
