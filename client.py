@@ -124,6 +124,7 @@ class Request(object):
         for k, v in httpresponse.items():
             del httpresponse[k]
             httpresponse[k.lower()] = v
+        httpresponse['content-location'] = obj._id
 
         body = message.get_payload()
         httpresponse, body = self._update_response_from_cache(http, httpresponse, body)

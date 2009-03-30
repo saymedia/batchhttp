@@ -9,6 +9,7 @@ import email
 import email.message
 
 from remoteobjects import tests, fields, RemoteObject
+import batchhttp.client
 from batchhttp.client import BatchError, BatchClient
 
 class TestBatchRequests(unittest.TestCase):
@@ -236,17 +237,20 @@ Etag: 7
         http.cache = mox.MockObject(httplib2.FileCache)
         http.cache.get('http://example.com/moose').AndReturn("""status: 200\r
 content-type: application/json\r
+content-location: http://example.com/moose\r
 etag: 7\r
 \r
 {"name": "Potatoshop"}""")
         http.cache.get('http://example.com/moose').AndReturn("""status: 200\r
 content-type: application/json\r
+content-location: http://example.com/moose\r
 etag: 7\r
 \r
 {"name": "Potatoshop"}""")
         http.cache.set('http://example.com/moose', """status: 304\r
 etag: 7\r
 content-type: application/json\r
+content-location: http://example.com/moose\r
 \r
 {"name": "Potatoshop"}""")
 
@@ -277,7 +281,7 @@ content-type: application/json\r
             pass
 
         t = Tiny.get('http://example.com/tinytiny')
-        self.assertRaises(BatchError, lambda: client.add(t) )
+        tests.todo(lambda: self.assertRaises(BatchError, lambda: client.add(t) )
 
         client.batch_request()
         self.assertRaises(BatchError, lambda: client.batch_request() )
