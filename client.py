@@ -13,7 +13,7 @@ from batchhttp.multipart import MultipartHTTPMessage, HTTPRequestMessage
 
 __all__ = ('BatchClient', 'client', 'BATCH_REQUESTS')
 
-BATCH_REQUESTS = False
+BATCH_REQUESTS = True
 
 # FIXME: shouldn't be necessary... endpoint URL should
 # be able to handle batch requests.
