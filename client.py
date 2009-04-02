@@ -17,7 +17,7 @@ BATCH_REQUESTS = True
 
 # FIXME: shouldn't be necessary... endpoint URL should
 # be able to handle batch requests.
-BATCH_ENDPOINT = 'http://127.0.0.1:5001/batch-processor'
+BATCH_ENDPOINT = 'http://127.0.0.1:8000/batch-processor'
 
 class BatchError(Exception):
     pass
