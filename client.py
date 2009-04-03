@@ -223,9 +223,11 @@ class BatchRequest(object):
 
 class BatchClient(object):
 
-    def __init__(self):
+    def __init__(self, http=None):
+        if http is None:
+            http = httplib2.Http()
+        self.http = http
         # TODO: set up caching?
-        self.http = httplib2.Http()
 
     def batch_request(self):
         """Opens a new BatchRequest.
