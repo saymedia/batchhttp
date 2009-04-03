@@ -97,6 +97,8 @@ class Request(object):
 
         requesttext = "GET %s HTTP/1.1\r\n" % path
         headers['host'] = host
+        # Prevent compression as it's unlikely to survive batching.
+        headers['accept-encoding'] = 'identity'
         for header, value in headers.iteritems():
             requesttext += "%s: %s\r\n" % (header, value)
         requesttext += '\r\n'
