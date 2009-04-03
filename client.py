@@ -17,7 +17,7 @@ BATCH_REQUESTS = True
 
 # FIXME: shouldn't be necessary... endpoint URL should
 # be able to handle batch requests.
-BATCH_ENDPOINT = 'http://127.0.0.1:8000/batch-processor'
+BATCH_ENDPOINT = 'http://127.0.0.1:8000/'
 
 class BatchError(Exception):
     pass
@@ -140,12 +140,13 @@ class BatchRequest(object):
         r = Request(obj)
         self.requests.append(r)
 
-    def process(self, http):
+    def process(self, http, endpoint):
         if BATCH_REQUESTS:
             headers, body = self.construct(http)
             logging.debug('MADE HEADERS: %r' % (headers,))
             logging.debug('MADE BODY: %s' % (body,))
-            response, content = http.request(BATCH_ENDPOINT, body=body, method="POST", headers=headers)
+            batch_url = urljoin(endpoint, '/batch-processor')
+            response, content = http.request(batch_url, body=body, method="POST", headers=headers)
             logging.debug('GOT RESPONSE: %s' % (response,))
             logging.debug('GOT CONTENT: %s' % (content,))
             self.handle_response(http, response, content)
@@ -223,10 +224,14 @@ class BatchRequest(object):
 
 class BatchClient(object):
 
-    def __init__(self, http=None):
+    def __init__(self, http=None, endpoint=None):
         if http is None:
             http = httplib2.Http()
         self.http = http
+
+        if endpoint is None:
+            endpoint = BATCH_ENDPOINT
+        self.endpoint = endpoint
         # TODO: set up caching?
 
     def batch_request(self):
@@ -245,7 +250,7 @@ class BatchClient(object):
         if not hasattr(self, 'request'):
             raise BatchError("There's no open batch request to complete")
         try:
-            self.request.process(self.http)
+            self.request.process(self.http, self.endpoint)
         finally:
             del self.request
 
