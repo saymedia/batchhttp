@@ -43,6 +43,8 @@ class Request(object):
             class StopCharade(Exception):
                 pass
 
+            # TODO: implement this with a fake "connection" instead of
+            # overriding Http methods
             class VolatileHttp(httplib2.Http):
                 def _conn_request(self, conn, request_uri, method, body, headers):
                     self.url     = request_uri
@@ -63,11 +65,13 @@ class Request(object):
         # we were given.
         return objreq.get('headers', {}), objreq.get('body')
 
-    def _update_response_from_cache(self, http, response, body):
+    def _update_response_from_cache(self, http, response, realbody):
         if http.cache is not None or http.authorizations:
+            # TODO: implement this with a fake "connection" instead of
+            # overriding Http methods
             class FauxHttp(httplib2.Http):
                 def _conn_request(self, conn, request_uri, method, body, headers):
-                    return response, body
+                    return response, httplib2._decompressContent(response, realbody)
 
             fh = FauxHttp()
             fh.cache          = http.cache
@@ -75,14 +79,14 @@ class Request(object):
 
             objreq = self.object.get_request()
             # Let Http.request fill in the response from its cache.
-            response, body = fh.request(**objreq)
+            response, realbody = fh.request(**objreq)
 
             # TODO: Fix up the status code, since httplib2 writes it through
             # to the cache, who knows why.
             if response.status == 304:
                 response.status = 200
 
-        return response, body
+        return response, realbody
 
     def as_message(self, http, id):
         headers, body = self._update_headers_from_cache(http)
@@ -129,7 +133,11 @@ class Request(object):
         httpresponse['content-location'] = obj._id
 
         body = message.get_payload()
+        if body is None:
+            raise BatchError('Could not decode subrequest body from MIME payload')
         httpresponse, body = self._update_response_from_cache(http, httpresponse, body)
+        if body is None:
+            raise BatchError('Could not decode subrequest body through httplib2')
 
         obj._raise_response(httpresponse, obj.get_request()['uri'])
         obj.update_from_response(httpresponse, body)
