@@ -39,19 +39,20 @@ class Request(object):
     def _update_headers_from_cache(self, http):
         objreq = self.object.get_request()
 
-        if http.cache is not None:
+        if http.cache is not None or http.authorizations:
             class StopCharade(Exception):
                 pass
 
             class VolatileHttp(httplib2.Http):
-                def _request(self, conn, host, absolute_uri, request_uri, method, body, headers, redirections, cachekey):
+                def _conn_request(self, conn, request_uri, method, body, headers):
                     self.url     = request_uri
                     self.body    = body
                     self.headers = headers
                     raise StopCharade()
 
             vh = VolatileHttp()
-            vh.cache = http.cache
+            vh.cache          = http.cache
+            vh.authorizations = http.authorizations
 
             try:
                 vh.request(**objreq)
@@ -63,13 +64,14 @@ class Request(object):
         return objreq.get('headers', {}), objreq.get('body')
 
     def _update_response_from_cache(self, http, response, body):
-        if http.cache is not None:
+        if http.cache is not None or http.authorizations:
             class FauxHttp(httplib2.Http):
-                def _request(self, conn, host, absolute_uri, request_uri, method, body, headers, redirections, cachekey):
+                def _conn_request(self, conn, request_uri, method, body, headers):
                     return response, body
 
             fh = FauxHttp()
-            fh.cache = http.cache
+            fh.cache          = http.cache
+            fh.authorizations = http.authorizations
 
             objreq = self.object.get_request()
             # Let Http.request fill in the response from its cache.
