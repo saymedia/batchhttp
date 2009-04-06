@@ -11,9 +11,7 @@ import weakref
 
 from batchhttp.multipart import MultipartHTTPMessage, HTTPRequestMessage
 
-__all__ = ('BatchClient', 'client', 'BATCH_REQUESTS')
-
-BATCH_REQUESTS = True
+__all__ = ('BatchClient', 'client')
 
 # FIXME: shouldn't be necessary... endpoint URL should
 # be able to handle batch requests.
@@ -154,18 +152,14 @@ class BatchRequest(object):
         self.requests.append(r)
 
     def process(self, http, endpoint):
-        if BATCH_REQUESTS:
-            headers, body = self.construct(http)
-            logging.debug('MADE HEADERS: %r' % (headers,))
-            logging.debug('MADE BODY: %s' % (body,))
-            batch_url = urljoin(endpoint, '/batch-processor')
-            response, content = http.request(batch_url, body=body, method="POST", headers=headers)
-            logging.debug('GOT RESPONSE: %s' % (response,))
-            logging.debug('GOT CONTENT: %s' % (content,))
-            self.handle_response(http, response, content)
-        else:
-            # They're all PromiseObjects, so let them figure it out.
-            pass
+        headers, body = self.construct(http)
+        logging.debug('MADE HEADERS: %r' % (headers,))
+        logging.debug('MADE BODY: %s' % (body,))
+        batch_url = urljoin(endpoint, '/batch-processor')
+        response, content = http.request(batch_url, body=body, method="POST", headers=headers)
+        logging.debug('GOT RESPONSE: %s' % (response,))
+        logging.debug('GOT CONTENT: %s' % (content,))
+        self.handle_response(http, response, content)
 
     def construct(self, http):
         msg = MultipartHTTPMessage()

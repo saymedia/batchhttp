@@ -14,9 +14,6 @@ from batchhttp.client import BatchError, BatchClient
 
 class TestBatchRequests(unittest.TestCase):
 
-    def setUp(self):
-        batchhttp.client.BATCH_REQUESTS = True
-
     def mocksetter(self, key):
         def mockset(x):
             setattr(self, key, x)
