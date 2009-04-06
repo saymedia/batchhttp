@@ -74,8 +74,9 @@ class Request(object):
                     return response, httplib2._decompressContent(response, realbody)
 
             fh = FauxHttp()
-            fh.cache          = http.cache
-            fh.authorizations = http.authorizations
+            fh.cache            = http.cache
+            fh.authorizations   = http.authorizations
+            fh.follow_redirects = False
 
             objreq = self.object.get_request()
             # Let Http.request fill in the response from its cache.
