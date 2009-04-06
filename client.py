@@ -189,6 +189,13 @@ class BatchRequest(object):
         return headers, content
 
     def handle_response(self, http, response, content):
+        # was the response okay?
+        if response.status != 207:
+            logging.error('Received non-batch response %d %s with content:\n%s'
+                % (response.status, response.reason, content))
+            raise BatchError('Received non-batch response: %d %s'
+                % (response.status, response.reason))
+
         # parse content into pieces
 
         # Prevent the message/http-response sub-parts from turning into
@@ -212,6 +219,8 @@ class BatchRequest(object):
         message = p.close()
 
         if not message.is_multipart():
+            logging.error('RESPONSE: ' + str(response))
+            logging.error('CONTENT: ' + content)
             raise HTTPException('Response was not a MIME multipart response set')
 
         response = {}
@@ -253,10 +262,15 @@ class BatchClient(object):
         If a request is already instantiated, this will raise an exception.
 
         """
+        import traceback
         if hasattr(self, 'request'):
             # hey, we already have a request. this is invalid...
+            logging.error('Batch request previously opened at:\n'
+                + ''.join(traceback.format_list(self._opened)))
+            logging.error('New now at:\n' + ''.join(traceback.format_stack()))
             raise BatchError("There's already an open batch request")
         self.request = BatchRequest()
+        self._opened = traceback.extract_stack()
         return self.request
 
     def complete_request(self):
