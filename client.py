@@ -11,7 +11,11 @@ import weakref
 
 from batchhttp.multipart import MultipartHTTPMessage, HTTPRequestMessage
 
-__all__ = ('BatchClient', 'client')
+__all__ = ('BatchClient', 'client', 'log')
+
+log = logging.getLogger('batchhttp.client')
+log.setLevel(logging.ERROR)
+log.addHandler(logging.StreamHandler())
 
 # FIXME: shouldn't be necessary... endpoint URL should
 # be able to handle batch requests.
@@ -155,12 +159,12 @@ class BatchRequest(object):
 
     def process(self, http, endpoint):
         headers, body = self.construct(http)
-        logging.debug('MADE HEADERS: %r' % (headers,))
-        logging.debug('MADE BODY: %s' % (body,))
+        log.debug('MADE HEADERS: %r' % (headers,))
+        log.debug('MADE BODY: %s' % (body,))
         batch_url = urljoin(endpoint, '/batch-processor')
         response, content = http.request(batch_url, body=body, method="POST", headers=headers)
-        logging.debug('GOT RESPONSE: %s' % (response,))
-        logging.debug('GOT CONTENT: %s' % (content,))
+        log.debug('GOT RESPONSE: %s' % (response,))
+        log.debug('GOT CONTENT: %s' % (content,))
         self.handle_response(http, response, content)
 
     def construct(self, http):
@@ -187,7 +191,7 @@ class BatchRequest(object):
     def handle_response(self, http, response, content):
         # was the response okay?
         if response.status != 207:
-            logging.error('Received non-batch response %d %s with content:\n%s'
+            log.debug('Received non-batch response %d %s with content:\n%s'
                 % (response.status, response.reason, content))
             raise BatchError('Received non-batch response: %d %s'
                 % (response.status, response.reason))
@@ -215,8 +219,8 @@ class BatchRequest(object):
         message = p.close()
 
         if not message.is_multipart():
-            logging.error('RESPONSE: ' + str(response))
-            logging.error('CONTENT: ' + content)
+            log.debug('RESPONSE: ' + str(response))
+            log.debug('CONTENT: ' + content)
             raise HTTPException('Response was not a MIME multipart response set')
 
         response = {}
@@ -261,9 +265,9 @@ class BatchClient(object):
         import traceback
         if hasattr(self, 'request'):
             # hey, we already have a request. this is invalid...
-            logging.error('Batch request previously opened at:\n'
+            log.debug('Batch request previously opened at:\n'
                 + ''.join(traceback.format_list(self._opened)))
-            logging.error('New now at:\n' + ''.join(traceback.format_stack()))
+            log.debug('New now at:\n' + ''.join(traceback.format_stack()))
             raise BatchError("There's already an open batch request")
         self.request = BatchRequest()
         self._opened = traceback.extract_stack()
