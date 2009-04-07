@@ -91,10 +91,12 @@ class Request(object):
         headers, body = self._update_headers_from_cache(http)
 
         objreq = self.object.get_request()
-        parts = urlparse(objreq['uri'])
-        host, path = parts[1], urlunparse(('', '') + parts[2:])
+        url = objreq['uri']
+        parts = urlparse(url)
+        host = parts[1]
 
-        requesttext = "GET %s HTTP/1.1\r\n" % path
+        # Use whole URL in request line per HTTP/1.1 5.1.2 (proxy behavior).
+        requesttext = "GET %s HTTP/1.1\r\n" % url
         headers['host'] = host
         # Prevent compression as it's unlikely to survive batching.
         headers['accept-encoding'] = 'identity'
