@@ -3,6 +3,7 @@ from email.Generator import Generator
 from email.MIMEText import MIMEText
 from email.MIMEMessage import MIMEMessage
 from email.Parser import Parser
+from urlparse import urlparse, urlunparse
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -19,6 +20,12 @@ def bdecode(s):
     if not s.endswith("\n") and value.endswith("\n"):
         return value[:-1]
     return value
+
+
+def parse_uri(uri):
+    """Parse a URI. Return the scheme, the host, and the rest of the URI."""
+    parts = list(urlparse(uri))
+    return parts[0], parts[1], urlunparse([None, None] + parts[2:])
 
 
 class BadRequestException(Exception): pass
@@ -40,10 +47,11 @@ class HTTPRequest(object):
         parts = request_line.split()
         try:
             self.command = parts[0]
-            self.path = parts[1]
+            self.request_uri = parts[1]
             self.version = parts[2]
         except IndexError:
             raise BadRequestException()
+        self.scheme, self.host, self.path = parse_uri(self.request_uri)
 
         line = lines.pop(0)
         # IE sends an extraneous empty line (\r\n) after a POST request;
@@ -76,6 +84,8 @@ class HTTPRequest(object):
             self.length = int(data)
         elif header == 'content-type':
             self.content_type = value
+        elif header == 'host' and not self.host:
+            self.host = host
         self.headers.append((header, data))
 
     def __str__(self):
