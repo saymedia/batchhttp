@@ -25,10 +25,10 @@ class TestBatchRequests(unittest.TestCase):
         class Tiny(RemoteObject):
             name = fields.Something()
 
-        response = {
+        response = httplib2.Response({
             'status': '207',
             'content-type': 'multipart/parallel; boundary="=={{[[ ASFDASF ]]}}=="',
-        }
+        })
         content  = """OMG HAI
 
 --=={{[[ ASFDASF ]]}}==
@@ -45,12 +45,13 @@ Content-Type: application/json
 
         http = mox.MockObject(httplib2.Http)
         http.request(
-            'http://127.0.0.1:5001/batch-processor',
+            'http://127.0.0.1:8000/batch-processor',
             method='POST',
             headers=self.mocksetter('headers'),
             body=self.mocksetter('body'),
         ).AndReturn((response, content))
         http.cache = None
+        http.authorizations = []
 
         mox.Replay(http)
 
@@ -92,10 +93,10 @@ Content-Type: application/json
         class Tiny(RemoteObject):
             name = fields.Something()
 
-        response = {
+        response = httplib2.Response({
             'status': '207',
             'content-type': 'multipart/parallel; boundary="foomfoomfoom"',
-        }
+        })
         content = """wah-ho, wah-hay
 
 --foomfoomfoom
@@ -120,12 +121,13 @@ Content-Type: application/json
 
         http = mox.MockObject(httplib2.Http)
         http.request(
-            'http://127.0.0.1:5001/batch-processor',
+            'http://127.0.0.1:8000/batch-processor',
             method='POST',
             headers=self.mocksetter('headers'),
             body=self.mocksetter('body'),
         ).AndReturn((response, content))
         http.cache = None
+        http.authorizations = []
 
         mox.Replay(http)
 
@@ -148,10 +150,10 @@ Content-Type: application/json
         class Tiny(RemoteObject):
             name = fields.Something()
 
-        response = {
+        response = httplib2.Response({
             'status': '207',
             'content-type': 'multipart/parallel; boundary="foomfoomfoom"',
-        }
+        })
         content = """wah-ho, wah-hay
 
 --foomfoomfoom
@@ -176,12 +178,13 @@ Content-Type: application/json
 
         http = mox.MockObject(httplib2.Http)
         http.request(
-            'http://127.0.0.1:5001/batch-processor',
+            'http://127.0.0.1:8000/batch-processor',
             method='POST',
             headers=self.mocksetter('headers'),
             body=self.mocksetter('body'),
         ).AndReturn((response, content))
         http.cache = None
+        http.authorizations = []
 
         mox.Replay(http)
 
@@ -205,10 +208,10 @@ Content-Type: application/json
         class Tiny(RemoteObject):
             name = fields.Something()
 
-        response = {
+        response = httplib2.Response({
             'status': '207',
             'content-type': 'multipart/parallel; boundary="=={{[[ ASFDASF ]]}}=="',
-        }
+        })
         content  = """OMG HAI
 
 --=={{[[ ASFDASF ]]}}==
@@ -225,11 +228,12 @@ Etag: 7
 
         http = mox.MockObject(httplib2.Http)
         http.request(
-            'http://127.0.0.1:5001/batch-processor',
+            'http://127.0.0.1:8000/batch-processor',
             method='POST',
             headers=self.mocksetter('headers'),
             body=self.mocksetter('body'),
         ).AndReturn((response, content))
+        http.authorizations = []
 
         http.cache = mox.MockObject(httplib2.FileCache)
         http.cache.get('http://example.com/moose').AndReturn("""status: 200\r
@@ -267,6 +271,10 @@ content-location: http://example.com/moose\r
         self.assertEquals(self.headers['MIME-Version'], '1.0')
 
         self.assertEquals(t.name, 'Potatoshop')
+
+    @tests.todo
+    def testAuthorizations(self):
+        raise NotImplementedError()
 
     def testBatchClientErrors(self):
 
