@@ -216,9 +216,6 @@ Content-Type: application/json
 
     def testCacheful(self):
 
-        class Tiny(RemoteObject):
-            name = fields.Something()
-
         response = httplib2.Response({
             'status': '207',
             'content-type': 'multipart/parallel; boundary="=={{[[ ASFDASF ]]}}=="',
@@ -268,20 +265,22 @@ content-location: http://example.com/moose\r
 
         mox.Replay(http, http.cache)
 
-        client = BatchClient()
-        client.http = http
+        def callback(url, subresponse, subcontent):
+            self.subresponse = subresponse
+            self.subcontent  = subcontent
+
         self.assert_(http.cache)
-        client.batch_request()
-        t = Tiny.get('http://example.com/moose', http=http)
-        client.add(t)
-        client.complete_request()
+        bat = BatchClient(http=http)
+        bat.batch_request()
+        bat.add({'uri': 'http://example.com/moose'}, callback)
+        bat.complete_request()
 
         mox.Verify(http, http.cache)
 
         self.assertEquals(sorted(self.headers.keys()), ['Content-Type', 'MIME-Version'])
         self.assertEquals(self.headers['MIME-Version'], '1.0')
 
-        self.assertEquals(t.name, 'Potatoshop')
+        self.assertEquals(self.subcontent, '{"name": "Potatoshop"}')
 
     @tests.todo
     def testAuthorizations(self):
