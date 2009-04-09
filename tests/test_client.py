@@ -2,6 +2,7 @@ from __future__ import with_statement
 
 import unittest
 import logging
+import httplib
 import httplib2
 import re
 import mox
@@ -21,9 +22,6 @@ class TestBatchRequests(unittest.TestCase):
         return mox.Func(mockset)
 
     def testLeast(self):
-
-        class Tiny(RemoteObject):
-            name = fields.Something()
 
         response = httplib2.Response({
             'status': '207',
@@ -55,12 +53,14 @@ Content-Type: application/json
 
         mox.Replay(http)
 
-        client = BatchClient()
-        client.http = http
-        client.batch_request()
-        t = Tiny.get('http://example.com/moose', http=http)  # meh injection
-        client.add(t)
-        client.complete_request()
+        def callback(subresponse, subcontent):
+            self.subresponse = subresponse
+            self.subcontent  = subcontent
+
+        bat = BatchClient(http=http, endpoint='http://127.0.0.1:8000/batch-processor')
+        bat.batch_request()
+        bat.add({'uri': 'http://example.com/moose'}, callback=callback)
+        bat.complete_request()
 
         mox.Verify(http)
 
@@ -86,12 +86,9 @@ Content-Type: application/json
         self.assertEquals(subresp_msg.get_content_type(), 'message/http-request')
         self.assert_('Multipart-Request-ID' in subresp_msg)
 
-        self.assertEquals(t.name, 'Potatoshop')
+        self.assertEquals(self.subcontent, '{"name": "Potatoshop"}')
 
     def testMulti(self):
-
-        class Tiny(RemoteObject):
-            name = fields.Something()
 
         response = httplib2.Response({
             'status': '207',
@@ -131,24 +128,25 @@ Content-Type: application/json
 
         mox.Replay(http)
 
-        client = BatchClient()
-        client.http = http
-        client.batch_request()
-        t = Tiny.get('http://example.com/moose', http=http)
-        j = Tiny.get('http://example.com/fred',  http=http)
-        client.add(t)
-        client.add(j)
-        client.complete_request()
+        def callbackMoose(subresponse, subcontent):
+            self.subresponseMoose = subresponse
+            self.subcontentMoose  = subcontent
+        def callbackFred(subresponse, subcontent):
+            self.subresponseFred = subresponse
+            self.subcontentFred  = subcontent
 
-        self.assertEquals(t.name, 'sturm')
-        self.assertEquals(j.name, 'drang')
+        bat = BatchClient(http=http)
+        bat.batch_request()
+        bat.add({'uri': 'http://example.com/moose'}, callbackMoose)
+        bat.add({'uri': 'http://example.com/fred'},  callbackFred)
+        bat.complete_request()
+
+        self.assertEquals(self.subcontentMoose, '{"name": "sturm"}')
+        self.assertEquals(self.subcontentFred,  '{"name": "drang"}')
 
         mox.Verify(http)
 
     def testNotFound(self):
-
-        class Tiny(RemoteObject):
-            name = fields.Something()
 
         response = httplib2.Response({
             'status': '207',
@@ -188,18 +186,31 @@ Content-Type: application/json
 
         mox.Replay(http)
 
-        client = BatchClient()
-        client.http = http
-        client.batch_request()
-        t = Tiny.get('http://example.com/moose', http=http)
-        j = Tiny.get('http://example.com/fred',  http=http)
-        client.add(t)
-        client.add(j)
+        def callbackMoose(subresponse, subcontent):
+            self.subresponseMoose = subresponse
+            self.subcontentMoose  = subcontent
 
-        self.assertRaises(Tiny.NotFound, lambda: client.complete_request() )
+            # We might convert an errorful subresponse into an exception in
+            # a callback, so check that exceptions that are thrown from the
+            # callback percolate out.
+            raise httplib.HTTPException('404 Not Found')
 
-        # Does j still exist? Should it?
-        self.assertEquals(j.name, 'drang')
+        def callbackFred(subresponse, subcontent):
+            self.subresponseFred = subresponse
+            self.subcontentFred  = subcontent
+
+        bat = BatchClient(http=http)
+        bat.batch_request()
+        bat.add({'uri': 'http://example.com/moose'}, callbackMoose)
+        bat.add({'uri': 'http://example.com/fred'},  callbackFred)
+
+        self.assertRaises(httplib.HTTPException, lambda: bat.complete_request() )
+
+        self.assertEquals(self.subresponseMoose.status, 404)
+        self.assertEquals(self.subcontentMoose, '{"oops": null}')
+
+        # Does fred still exist? Should it?
+        self.assertEquals(self.subcontentFred, '{"name": "drang"}')
 
         mox.Verify(http)
 

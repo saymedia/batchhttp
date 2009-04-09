@@ -3,10 +3,11 @@ import email.feedparser
 import email.header
 from httplib import HTTPException
 import httplib2
+import logging
 import mimetools
+import new
 from StringIO import StringIO
 from urlparse import urljoin, urlparse, urlunparse
-import logging
 import weakref
 
 from batchhttp.multipart import MultipartHTTPMessage, HTTPRequestMessage
@@ -24,22 +25,50 @@ BATCH_ENDPOINT = 'http://127.0.0.1:8000/'
 class BatchError(Exception):
     pass
 
-class NoRequestObject(Exception):
-    pass
+class WeaklyBoundMethod(object):
+    # Inspired by http://mindtrove.info/articles/python-weak-references/
+
+    def __init__(self, method):
+        self.instance  = weakref.ref(method.im_self)
+        self.function  = method.im_func
+        self.methclass = method.im_class
+
+    def alive(self):
+        if self.instance() is None:
+            return False
+        return True
+
+    def __call__(self, *args, **kwargs):
+        instance = self.instance()
+        if instance is None:
+            raise ReferenceError('Instance to which method was weakly bound has been collected')
+
+        method = new.instancemethod(self.function, instance, self.methclass)
+        return method(*args, **kwargs)
+
+class WeakCallback(object):
+    def __init__(self, callback):
+        self.callback = weakref.ref(callback)
+
+    def alive(self):
+        if self.callback() is None:
+            return False
+        return True
+
+    def __call__(self, *args, **kwargs):
+        return self.callback()(*args, **kwargs)
 
 class Request(object):
-    def __init__(self, obj):
-        self.objectref = weakref.ref(obj)
+    def __init__(self, reqinfo, callback):
+        self.reqinfo = reqinfo
 
-    @property
-    def object(self):
-        obj = self.objectref()
-        if obj is None:
-            raise NoRequestObject()
-        return obj
+        if hasattr(callback, 'im_self'):  # instancemethod
+            self.callback = WeaklyBoundMethod(callback)
+        else:
+            self.callback = WeakCallback(callback)
 
     def _update_headers_from_cache(self, http):
-        objreq = self.object.get_request()
+        objreq = self.reqinfo
 
         if http.cache is not None or http.authorizations:
             class StopCharade(Exception):
@@ -80,9 +109,8 @@ class Request(object):
             fh.authorizations   = http.authorizations
             fh.follow_redirects = False
 
-            objreq = self.object.get_request()
             # Let Http.request fill in the response from its cache.
-            response, realbody = fh.request(**objreq)
+            response, realbody = fh.request(**self.reqinfo)
 
             # TODO: Fix up the status code, since httplib2 writes it through
             # to the cache, who knows why.
@@ -92,9 +120,12 @@ class Request(object):
         return response, realbody
 
     def as_message(self, http, id):
+        if not self.callback.alive():
+            raise ReferenceError("No callback to return request's response to")
+
         headers, body = self._update_headers_from_cache(http)
 
-        objreq = self.object.get_request()
+        objreq = self.reqinfo
         url = objreq['uri']
         parts = urlparse(url)
         host = parts[1]
@@ -114,9 +145,8 @@ class Request(object):
         return submsg
 
     def decode_response(self, http, part):
-        # Grab the object now so we can skip all that parsing if the request
-        # is really empty.
-        obj = self.object
+        if not self.callback.alive():
+            raise ReferenceError("No callback to return response to")
 
         # Parse the part body into a status line and a Message.
         messagetext = part.get_payload(decode=True)
@@ -137,7 +167,6 @@ class Request(object):
         for k, v in httpresponse.items():
             del httpresponse[k]
             httpresponse[k.lower()] = v
-        httpresponse['content-location'] = obj._id
 
         body = message.get_payload()
         if body is None:
@@ -146,25 +175,20 @@ class Request(object):
         if body is None:
             raise BatchError('Could not decode subrequest body through httplib2')
 
-        obj._raise_response(httpresponse, obj.get_request()['uri'])
-        obj.update_from_response(httpresponse, body)
+        self.callback(self.reqinfo['uri'], httpresponse, body)
 
 class BatchRequest(object):
     def __init__(self):
         self.requests = list()
 
-    def add(self, obj):
-        r = Request(obj)
+    def add(self, reqinfo, callback):
+        r = Request(reqinfo, callback)
         self.requests.append(r)
 
     def process(self, http, endpoint):
         headers, body = self.construct(http)
-        log.debug('MADE HEADERS: %r' % (headers,))
-        log.debug('MADE BODY: %s' % (body,))
         batch_url = urljoin(endpoint, '/batch-processor')
         response, content = http.request(batch_url, body=body, method="POST", headers=headers)
-        log.debug('GOT RESPONSE: %s' % (response,))
-        log.debug('GOT CONTENT: %s' % (content,))
         self.handle_response(http, response, content)
 
     def construct(self, http):
@@ -173,7 +197,7 @@ class BatchRequest(object):
         for request in self.requests:
             try:
                 submsg = request.as_message(http, request_id)
-            except NoRequestObject:
+            except ReferenceError:
                 pass
             else:
                 msg.attach(submsg)
@@ -186,6 +210,12 @@ class BatchRequest(object):
         headers = {}
         for hdr in hdrs:
             headers[hdr[0]] = hdr[1]
+
+        log.debug('Built batch request:\n%s\n\n%s'
+            % ('\n'.join([
+                '%s: %s' % (k, v) for k, v in headers.items()
+            ]), content))
+
         return headers, content
 
     def handle_response(self, http, response, content):
@@ -239,7 +269,7 @@ class BatchRequest(object):
             request = self.requests[request_id-1]
             try:
                 request.decode_response(http, part)
-            except NoRequestObject:
+            except ReferenceError:
                 # We shouldn't have lost any references to request objects
                 # since the request, but just in case.
                 pass
@@ -288,7 +318,7 @@ class BatchClient(object):
             # well it's already cleared then isn't it
             pass
 
-    def add(self, obj):
+    def add(self, reqinfo, callback):
         if not hasattr(self, 'request'):
             raise BatchError("There's no open batch request to add an object to")
-        self.request.add(obj)
+        self.request.add(reqinfo, callback)
