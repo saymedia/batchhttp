@@ -15,8 +15,6 @@ from batchhttp.multipart import MultipartHTTPMessage, HTTPRequestMessage
 __all__ = ('BatchClient', 'client', 'log')
 
 log = logging.getLogger('batchhttp.client')
-log.setLevel(logging.ERROR)
-log.addHandler(logging.StreamHandler())
 
 # FIXME: shouldn't be necessary... endpoint URL should
 # be able to handle batch requests.
