@@ -53,7 +53,7 @@ Content-Type: application/json
 
         mox.Replay(http)
 
-        def callback(subresponse, subcontent):
+        def callback(url, subresponse, subcontent):
             self.subresponse = subresponse
             self.subcontent  = subcontent
 
@@ -128,10 +128,10 @@ Content-Type: application/json
 
         mox.Replay(http)
 
-        def callbackMoose(subresponse, subcontent):
+        def callbackMoose(url, subresponse, subcontent):
             self.subresponseMoose = subresponse
             self.subcontentMoose  = subcontent
-        def callbackFred(subresponse, subcontent):
+        def callbackFred(url, subresponse, subcontent):
             self.subresponseFred = subresponse
             self.subcontentFred  = subcontent
 
@@ -186,7 +186,7 @@ Content-Type: application/json
 
         mox.Replay(http)
 
-        def callbackMoose(subresponse, subcontent):
+        def callbackMoose(url, subresponse, subcontent):
             self.subresponseMoose = subresponse
             self.subcontentMoose  = subcontent
 
@@ -195,7 +195,7 @@ Content-Type: application/json
             # callback percolate out.
             raise httplib.HTTPException('404 Not Found')
 
-        def callbackFred(subresponse, subcontent):
+        def callbackFred(url, subresponse, subcontent):
             self.subresponseFred = subresponse
             self.subcontentFred  = subcontent
 
