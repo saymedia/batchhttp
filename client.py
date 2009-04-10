@@ -179,6 +179,9 @@ class BatchRequest(object):
     def __init__(self):
         self.requests = list()
 
+    def __len__(self):
+        return len(self.requests)
+
     def add(self, reqinfo, callback):
         r = Request(reqinfo, callback)
         self.requests.append(r)
@@ -305,6 +308,7 @@ class BatchClient(object):
         if not hasattr(self, 'request'):
             raise BatchError("There's no open batch request to complete")
         try:
+            log.warning('Making batch request for %d items' % len(self.request))
             self.request.process(self.http, self.endpoint)
         finally:
             del self.request
