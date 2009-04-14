@@ -188,11 +188,16 @@ class BatchRequest(object):
 
     def process(self, http, endpoint):
         headers, body = self.construct(http)
-        batch_url = urljoin(endpoint, '/batch-processor')
-        response, content = http.request(batch_url, body=body, method="POST", headers=headers)
-        self.handle_response(http, response, content)
+        if headers and body:
+            batch_url = urljoin(endpoint, '/batch-processor')
+            response, content = http.request(batch_url, body=body, method="POST", headers=headers)
+            self.handle_response(http, response, content)
 
     def construct(self, http):
+        if not len(self):
+            log.warning('No requests were made for the batch')
+            return None, None
+
         msg = MultipartHTTPMessage()
         request_id = 1
         for request in self.requests:
