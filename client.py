@@ -20,10 +20,12 @@ log = logging.getLogger('batchhttp.client')
 # be able to handle batch requests.
 BATCH_ENDPOINT = 'http://127.0.0.1:8000/'
 
+
 class BatchError(Exception):
     """An Exception raised when the `BatchClient` cannot open, add, or
     complete a batch request."""
     pass
+
 
 class WeaklyBoundMethod(object):
 
@@ -80,6 +82,7 @@ class WeaklyBoundMethod(object):
         method = new.instancemethod(self.function, instance, self.methclass)
         return method(*args, **kwargs)
 
+
 class WeakCallback(object):
 
     """A callback that is held through a weak reference.
@@ -121,6 +124,7 @@ class WeakCallback(object):
         if callback is None:
             raise ReferenceError('Callback to which this callback was weakly bound has been collected')
         return callback(*args, **kwargs)
+
 
 class Request(object):
 
@@ -303,6 +307,7 @@ class Request(object):
 
         self.callback(self.reqinfo['uri'], httpresponse, body)
 
+
 class BatchRequest(object):
 
     """A collection of HTTP responses that should be performed in a batch as
@@ -459,6 +464,7 @@ class BatchRequest(object):
                 # We shouldn't have lost any references to request objects
                 # since the request, but just in case.
                 pass
+
 
 class BatchClient(object):
 
