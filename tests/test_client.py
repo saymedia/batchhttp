@@ -9,9 +9,10 @@ import mox
 import email
 import email.message
 
-from remoteobjects import tests, fields, RemoteObject
+from remoteobjects import fields, RemoteObject
 import batchhttp.client
 from batchhttp.client import BatchError, BatchClient
+from batchhttp.tests import utils
 
 class TestBatchRequests(unittest.TestCase):
 
@@ -282,7 +283,7 @@ content-location: http://example.com/moose\r
 
         self.assertEquals(self.subcontent, '{"name": "Potatoshop"}')
 
-    @tests.todo
+    @utils.todo
     def testAuthorizations(self):
         raise NotImplementedError()
 
@@ -296,12 +297,12 @@ content-location: http://example.com/moose\r
             pass
 
         t = Tiny.get('http://example.com/tinytiny')
-        tests.todo(lambda: self.assertRaises(BatchError, lambda: client.add(t) )
+        utils.todo(lambda: self.assertRaises(BatchError, lambda: client.add(t) )
 
         client.batch_request()
         self.assertRaises(BatchError, lambda: client.batch_request() )
 
 
 if __name__ == '__main__':
-    tests.log()
+    utils.log()
     unittest.main()
