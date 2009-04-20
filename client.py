@@ -1,3 +1,12 @@
+"""
+
+The batch HTTP client provides a convenience interface around an
+`httplib2.Http` instance for combining multiple requests into one MIME-encoded
+batch request, dispatching the subresponses to the requests' associated
+callbacks.
+
+"""
+
 import email
 import email.feedparser
 import email.header
@@ -11,8 +20,6 @@ from urlparse import urljoin, urlparse, urlunparse
 import weakref
 
 from batchhttp.multipart import MultipartHTTPMessage, HTTPRequestMessage
-
-__all__ = ('BatchClient', 'client', 'log')
 
 log = logging.getLogger('batchhttp.client')
 
