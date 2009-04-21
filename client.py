@@ -11,13 +11,14 @@ import email
 import email.feedparser
 import email.header
 from httplib import HTTPException
-import httplib2
 import logging
 import mimetools
 import new
 from StringIO import StringIO
 from urlparse import urljoin, urlparse, urlunparse
 import weakref
+
+import httplib2
 
 from batchhttp.multipart import MultipartHTTPMessage, HTTPRequestMessage
 
