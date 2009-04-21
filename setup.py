@@ -8,9 +8,9 @@ setup(
     package_dir={'batchhttp': '.'},
 
     install_requires=['httplib2>=0.4.0'],
-    provides=['remoteobjects'],
+    provides=['batchhttp'],
 
     author='Six Apart',
     author_email='python@sixapart.com',
-    url='http://code.sixapart.com/svn/remoteobjects/',
+    url='http://code.sixapart.com/svn/batchhttp-py/',
 )
