@@ -9,7 +9,6 @@ import mox
 import email
 import email.message
 
-from remoteobjects import fields, RemoteObject
 import batchhttp.client
 from batchhttp.client import BatchError, BatchClient
 from batchhttp.tests import utils
@@ -42,28 +41,30 @@ Content-Type: application/json
 
         self.body, self.headers = None, None
 
-        http = mox.MockObject(httplib2.Http)
-        http.request(
+        bat = BatchClient(endpoint='http://127.0.0.1:8000/batch-processor')
+
+        m = mox.Mox()
+        m.StubOutWithMock(bat, 'request')
+        bat.request(
             'http://127.0.0.1:8000/batch-processor',
             method='POST',
             headers=self.mocksetter('headers'),
             body=self.mocksetter('body'),
         ).AndReturn((response, content))
-        http.cache = None
-        http.authorizations = []
+        bat.cache = None
+        bat.authorizations = []
 
-        mox.Replay(http)
+        m.ReplayAll()
 
         def callback(url, subresponse, subcontent):
             self.subresponse = subresponse
             self.subcontent  = subcontent
 
-        bat = BatchClient(http=http, endpoint='http://127.0.0.1:8000/batch-processor')
         bat.batch_request()
-        bat.add({'uri': 'http://example.com/moose'}, callback=callback)
-        bat.complete_request()
+        bat.batch({'uri': 'http://example.com/moose'}, callback=callback)
+        bat.complete_batch()
 
-        mox.Verify(http)
+        m.VerifyAll()
 
         self.assert_(self.headers is not None)
         self.assertEquals(sorted(self.headers.keys()), ['Content-Type', 'MIME-Version'])
@@ -117,17 +118,20 @@ Content-Type: application/json
 
         self.headers, self.body = None, None
 
-        http = mox.MockObject(httplib2.Http)
-        http.request(
+        bat = BatchClient()
+
+        m = mox.Mox()
+        m.StubOutWithMock(bat, 'request')
+        bat.request(
             'http://127.0.0.1:8000/batch-processor',
             method='POST',
             headers=self.mocksetter('headers'),
             body=self.mocksetter('body'),
         ).AndReturn((response, content))
-        http.cache = None
-        http.authorizations = []
+        bat.cache = None
+        bat.authorizations = []
 
-        mox.Replay(http)
+        m.ReplayAll()
 
         def callbackMoose(url, subresponse, subcontent):
             self.subresponseMoose = subresponse
@@ -136,16 +140,15 @@ Content-Type: application/json
             self.subresponseFred = subresponse
             self.subcontentFred  = subcontent
 
-        bat = BatchClient(http=http)
         bat.batch_request()
-        bat.add({'uri': 'http://example.com/moose'}, callbackMoose)
-        bat.add({'uri': 'http://example.com/fred'},  callbackFred)
-        bat.complete_request()
+        bat.batch({'uri': 'http://example.com/moose'}, callbackMoose)
+        bat.batch({'uri': 'http://example.com/fred'},  callbackFred)
+        bat.complete_batch()
 
         self.assertEquals(self.subcontentMoose, '{"name": "sturm"}')
         self.assertEquals(self.subcontentFred,  '{"name": "drang"}')
 
-        mox.Verify(http)
+        m.VerifyAll()
 
     def testNotFound(self):
 
@@ -175,17 +178,20 @@ Content-Type: application/json
 
         self.headers, self.body = None, None
 
-        http = mox.MockObject(httplib2.Http)
-        http.request(
+        bat = BatchClient()
+
+        m = mox.Mox()
+        m.StubOutWithMock(bat, 'request')
+        bat.request(
             'http://127.0.0.1:8000/batch-processor',
             method='POST',
             headers=self.mocksetter('headers'),
             body=self.mocksetter('body'),
         ).AndReturn((response, content))
-        http.cache = None
-        http.authorizations = []
+        bat.cache = None
+        bat.authorizations = []
 
-        mox.Replay(http)
+        m.ReplayAll()
 
         def callbackMoose(url, subresponse, subcontent):
             self.subresponseMoose = subresponse
@@ -200,12 +206,11 @@ Content-Type: application/json
             self.subresponseFred = subresponse
             self.subcontentFred  = subcontent
 
-        bat = BatchClient(http=http)
         bat.batch_request()
-        bat.add({'uri': 'http://example.com/moose'}, callbackMoose)
-        bat.add({'uri': 'http://example.com/fred'},  callbackFred)
+        bat.batch({'uri': 'http://example.com/moose'}, callbackMoose)
+        bat.batch({'uri': 'http://example.com/fred'},  callbackFred)
 
-        self.assertRaises(httplib.HTTPException, lambda: bat.complete_request() )
+        self.assertRaises(httplib.HTTPException, lambda: bat.complete_batch() )
 
         self.assertEquals(self.subresponseMoose.status, 404)
         self.assertEquals(self.subcontentMoose, '{"oops": null}')
@@ -213,7 +218,7 @@ Content-Type: application/json
         # Does fred still exist? Should it?
         self.assertEquals(self.subcontentFred, '{"name": "drang"}')
 
-        mox.Verify(http)
+        m.VerifyAll()
 
     def testCacheful(self):
 
@@ -235,48 +240,50 @@ Etag: 7
 
         self.body, self.headers = None, None
 
-        http = mox.MockObject(httplib2.Http)
-        http.request(
+        bat = BatchClient()
+
+        m = mox.Mox()
+        m.StubOutWithMock(bat, 'request')
+        bat.request(
             'http://127.0.0.1:8000/batch-processor',
             method='POST',
             headers=self.mocksetter('headers'),
             body=self.mocksetter('body'),
         ).AndReturn((response, content))
-        http.authorizations = []
+        bat.authorizations = []
 
-        http.cache = mox.MockObject(httplib2.FileCache)
-        http.cache.get('http://example.com/moose').AndReturn("""status: 200\r
+        bat.cache = m.CreateMock(httplib2.FileCache)
+        bat.cache.get('http://example.com/moose').AndReturn("""status: 200\r
 content-type: application/json\r
 content-location: http://example.com/moose\r
 etag: 7\r
 \r
 {"name": "Potatoshop"}""")
-        http.cache.get('http://example.com/moose').AndReturn("""status: 200\r
+        bat.cache.get('http://example.com/moose').AndReturn("""status: 200\r
 content-type: application/json\r
 content-location: http://example.com/moose\r
 etag: 7\r
 \r
 {"name": "Potatoshop"}""")
-        http.cache.set('http://example.com/moose', """status: 304\r
+        bat.cache.set('http://example.com/moose', """status: 304\r
 etag: 7\r
 content-type: application/json\r
 content-location: http://example.com/moose\r
 \r
 {"name": "Potatoshop"}""")
 
-        mox.Replay(http, http.cache)
+        m.ReplayAll()
 
         def callback(url, subresponse, subcontent):
             self.subresponse = subresponse
             self.subcontent  = subcontent
 
-        self.assert_(http.cache)
-        bat = BatchClient(http=http)
+        self.assert_(bat.cache)
         bat.batch_request()
-        bat.add({'uri': 'http://example.com/moose'}, callback)
-        bat.complete_request()
+        bat.batch({'uri': 'http://example.com/moose'}, callback)
+        bat.complete_batch()
 
-        mox.Verify(http, http.cache)
+        m.VerifyAll()
 
         self.assertEquals(sorted(self.headers.keys()), ['Content-Type', 'MIME-Version'])
         self.assertEquals(self.headers['MIME-Version'], '1.0')
@@ -289,18 +296,13 @@ content-location: http://example.com/moose\r
 
     def testBatchClientErrors(self):
 
-        client = BatchClient()
+        bat = BatchClient()
+        self.assertRaises(BatchError, lambda: bat.complete_batch() )
 
-        self.assertRaises(BatchError, lambda: client.complete_request() )
+        self.assertRaises(BatchError, lambda: bat.batch({'uri': 'http://example.com/tiny'}, lambda: None))
 
-        class Tiny(RemoteObject):
-            pass
-
-        t = Tiny.get('http://example.com/tinytiny')
-        utils.todo(lambda: self.assertRaises(BatchError, lambda: client.add(t) )
-
-        client.batch_request()
-        self.assertRaises(BatchError, lambda: client.batch_request() )
+        bat.batch_request()
+        self.assertRaises(BatchError, lambda: bat.batch_request() )
 
 
 if __name__ == '__main__':

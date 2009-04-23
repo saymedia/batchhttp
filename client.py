@@ -474,17 +474,13 @@ class BatchRequest(object):
                 pass
 
 
-class BatchClient(object):
+class BatchClient(httplib2.Http):
 
     """Sort of an HTTP client for performing a batch HTTP request."""
 
-    def __init__(self, http=None, endpoint=None):
-        """Configures the `BatchClient` instance to use the given user agent
-        object and batch processor endpoint.
-
-        Optional parameter `http` specifies an `httplib2.Http` instance to use
-        for making the batch request and simulating its subrequests. If not
-        given, a new `httplib2.Http` instance is used.
+    def __init__(self, endpoint=None):
+        """Configures the `BatchClient` instance to use the given batch
+        processor endpoint.
 
         Optional parameter `endpoint` is the base URL at which to find the
         batch processor to which to submit the batch request. The batch
@@ -492,14 +488,10 @@ class BatchClient(object):
         the site specified in `endpoint`.
 
         """
-        if http is None:
-            http = httplib2.Http()
-        self.http = http
-
         if endpoint is None:
             endpoint = BATCH_ENDPOINT
         self.endpoint = endpoint
-        # TODO: set up caching?
+        super(BatchClient, self).__init__()
 
     def batch_request(self):
         """Opens a batch request.
@@ -508,40 +500,40 @@ class BatchClient(object):
 
         """
         import traceback
-        if hasattr(self, 'request'):
+        if hasattr(self, 'batchrequest'):
             # hey, we already have a request. this is invalid...
             log.debug('Batch request previously opened at:\n'
                 + ''.join(traceback.format_list(self._opened)))
             log.debug('New now at:\n' + ''.join(traceback.format_stack()))
             raise BatchError("There's already an open batch request")
-        self.request = BatchRequest()
+        self.batchrequest = BatchRequest()
         self._opened = traceback.extract_stack()
-        return self.request
+        return self.batchrequest
 
-    def complete_request(self):
+    def complete_batch(self):
         """Closes a batch request, submitting it and dispatching the
         subresponses.
 
         If no batch request is open, a `BatchError` is raised.
 
         """
-        if not hasattr(self, 'request'):
+        if not hasattr(self, 'batchrequest'):
             raise BatchError("There's no open batch request to complete")
         try:
-            log.warning('Making batch request for %d items' % len(self.request))
-            self.request.process(self.http, self.endpoint)
+            log.warning('Making batch request for %d items' % len(self.batchrequest))
+            self.batchrequest.process(self, self.endpoint)
         finally:
-            del self.request
+            del self.batchrequest
 
-    def clear_request(self):
+    def clear_batch(self):
         """Closes a batch request without performing it."""
         try:
-            del self.request
+            del self.batchrequest
         except AttributeError:
             # well it's already cleared then isn't it
             pass
 
-    def add(self, reqinfo, callback):
+    def batch(self, reqinfo, callback):
         """Adds the given subrequest to the batch request.
 
         Parameter `reqinfo` is the HTTP request to perform, specified as a
@@ -558,6 +550,6 @@ class BatchClient(object):
         If no batch request is open, a `BatchError` is raised.
 
         """
-        if not hasattr(self, 'request'):
+        if not hasattr(self, 'batchrequest'):
             raise BatchError("There's no open batch request to add an object to")
-        self.request.add(reqinfo, callback)
+        self.batchrequest.add(reqinfo, callback)
