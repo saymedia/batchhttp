@@ -396,10 +396,11 @@ class BatchRequest(object):
         for hdr in hdrs:
             headers[hdr[0]] = hdr[1]
 
-        log.debug('Built batch request:\n%s\n\n%s'
-            % ('\n'.join([
-                '%s: %s' % (k, v) for k, v in headers.items()
-            ]), content))
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug('Built batch request:\n%s\n\n%s',
+                '\n'.join([
+                    '%s: %s' % (k, v) for k, v in headers.items()
+                ]), content)
 
         return headers, content
 
@@ -426,6 +427,11 @@ class BatchRequest(object):
                 % (response.status, response.reason))
 
         # parse content into pieces
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug('Handling batch response:\n%s\n\n%s',
+                '\n'.join([
+                    '%s: %s' % (k, v) for k, v in response.items()
+                ]), content)
 
         # Prevent the message/http-response sub-parts from turning into
         # Messages, as the HTTP status line will confuse the parser and
