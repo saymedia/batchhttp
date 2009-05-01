@@ -396,12 +396,6 @@ class BatchRequest(object):
         for hdr in hdrs:
             headers[hdr[0]] = hdr[1]
 
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug('Built batch request:\n%s\n\n%s',
-                '\n'.join([
-                    '%s: %s' % (k, v) for k, v in headers.items()
-                ]), content)
-
         return headers, content
 
     def handle_response(self, http, response, content):
@@ -427,11 +421,6 @@ class BatchRequest(object):
                 % (response.status, response.reason))
 
         # parse content into pieces
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug('Handling batch response:\n%s\n\n%s',
-                '\n'.join([
-                    '%s: %s' % (k, v) for k, v in response.items()
-                ]), content)
 
         # Prevent the message/http-response sub-parts from turning into
         # Messages, as the HTTP status line will confuse the parser and
@@ -559,3 +548,20 @@ class BatchClient(httplib2.Http):
         if not hasattr(self, 'batchrequest'):
             raise BatchError("There's no open batch request to add an object to")
         self.batchrequest.add(reqinfo, callback)
+
+    def request(self, uri, method="GET", body=None, headers=None, redirections=httplib2.DEFAULT_MAX_REDIRECTS, connection_type=None):
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug('Making request:\n%s %s\n%s\n\n%s', method, uri,
+                '\n'.join([
+                    '%s: %s' % (k, v) for k, v in headers.items()
+                ]), body or '')
+
+        response, content = super(BatchClient, self).request(uri, method, body, headers, redirections, connection_type)
+
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug('Got response:\n%s\n\n%s',
+                '\n'.join([
+                    '%s: %s' % (k, v) for k, v in response.items()
+                ]), content)
+
+        return response, content
