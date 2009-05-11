@@ -11,7 +11,7 @@ import email.message
 
 import batchhttp.client
 from batchhttp.client import BatchError, BatchClient
-from batchhttp.tests import utils
+from tests import utils
 
 class TestBatchRequests(unittest.TestCase):
 
