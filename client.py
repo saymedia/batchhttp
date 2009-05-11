@@ -422,14 +422,14 @@ class BatchRequest(object):
 
         # parse content into pieces
 
-        # Prevent the message/http-response sub-parts from turning into
+        # Prevent the application/http-response sub-parts from turning into
         # Messages, as the HTTP status line will confuse the parser and
         # we'll just get a text/plain Message with our response for the
         # payload anyway.
         class HttpAverseParser(email.feedparser.FeedParser):
             def _parse_headers(self, lines):
                 email.feedparser.FeedParser._parse_headers(self, lines)
-                if self._cur.get_content_type() == 'message/http-response':
+                if self._cur.get_content_type() == 'application/http-response':
                     self._set_headersonly()
 
         p = HttpAverseParser()
@@ -451,7 +451,7 @@ class BatchRequest(object):
         messages = message.get_payload()
 
         for part in messages:
-            if part.get_content_type() != 'message/http-response':
+            if part.get_content_type() != 'application/http-response':
                 raise BatchError('Batch response included a part that was not an HTTP response message')
             try:
                 request_id = int(part['Multipart-Request-ID'])

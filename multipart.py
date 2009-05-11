@@ -83,9 +83,9 @@ class HTTPRequest(object):
         if header == 'content-length':
             self.length = int(data)
         elif header == 'content-type':
-            self.content_type = value
+            self.content_type = data
         elif header == 'host' and not self.host:
-            self.host = host
+            self.host = data
         self.headers.append((header, data))
 
     def __str__(self):
@@ -145,10 +145,9 @@ class HTTPParser(object):
             self._parse(message)
 
     def _parse_subrequest(self, subrequest):
-        payload = subrequest.get_payload(0)
+        payload = subrequest.get_payload()
         if payload is None:
             raise ParserError("Missing payload in subrequest")
-        payload = payload.get_payload()
 
         content_type = subrequest.get('content-transfer-encoding', '').lower()
         if content_type == 'quoted-printable':
@@ -164,7 +163,7 @@ class HTTPParser(object):
             request_id = subrequest.get('multipart-request-id', None)
             if type == 'multipart':
                 continue # walk will descend into child messages
-            if type == 'message':
+            if type == 'application':
                 payload = self._parse_subrequest(subrequest)
                 subtype = subrequest.get_content_subtype()
                 if subtype == 'http-request':
@@ -183,7 +182,7 @@ class HTTPGenerator(Generator):
         self.write_headers = write_headers
         Generator.__init__(self, outfp, mangle_from_, maxheaderlen)
 
-    def _process_message_http(self, msg):
+    def _process_application_http(self, msg):
         payload = msg.get_payload()
         if payload is None:
             return
@@ -191,11 +190,15 @@ class HTTPGenerator(Generator):
             raise TypeError('string payload expected: %s' % type(payload))
         self._fp.write(payload)
 
-    def _handle_message_http_request(self, msg):
-        self._process_message_http(msg)
+    def _handle_application_http_request(self, msg):
+        # Called by Generator to parse MIME messages with a
+        # content-type of application/http-request.
+        self._process_application_http(msg)
 
-    def _handle_message_http_response(self, msg):
-        self._process_message_http(msg)
+    def _handle_application_http_response(self, msg):
+        # Called by Generator to parse MIME messages with a
+        # content-type of application/http-response.
+        self._process_application_http(msg)
 
     def _write_headers(self, msg):
         if self.write_headers:
@@ -220,7 +223,7 @@ class MultipartHTTPMessage(HTTPMessage):
 class HTTPRequestMessage(HTTPMessage):
     def __init__(self, http_request, request_id):
         HTTPMessage.__init__(self)
-        self.set_type('message/http-request')
+        self.set_type('application/http-request')
         self.add_header('Multipart-Request-ID', str(request_id))
         # TODO: look at HTTP Content-type and decide on quopri or base64.
         self.add_header('Content-transfer-encoding', 'quoted-printable')
@@ -233,7 +236,7 @@ class HTTPRequestMessage(HTTPMessage):
 class HTTPResponseMessage(HTTPMessage):
     def __init__(self, http_response, request_id):
         HTTPMessage.__init__(self)
-        self.set_type('message/http-response')
+        self.set_type('application/http-response')
         self.add_header('Multipart-Request-ID', str(request_id))
         # TODO: look at HTTP Content-type and decide on quopri or base64
         self.add_header('Content-transfer-encoding', 'quoted-printable')
