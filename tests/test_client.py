@@ -30,7 +30,7 @@ class TestBatchRequests(unittest.TestCase):
         content  = """OMG HAI
 
 --=={{[[ ASFDASF ]]}}==
-Content-Type: message/http-response
+Content-Type: application/http-response
 Multipart-Request-ID: 1
 
 200 OK
@@ -85,7 +85,7 @@ Content-Type: application/json
         self.assert_(subresponse.startswith('\n'))
         subresponse = subresponse[1:]
         subresp_msg = email.message_from_string(subresponse)
-        self.assertEquals(subresp_msg.get_content_type(), 'message/http-request')
+        self.assertEquals(subresp_msg.get_content_type(), 'application/http-request')
         self.assert_('Multipart-Request-ID' in subresp_msg)
 
         self.assertEquals(self.subcontent, '{"name": "Potatoshop"}')
@@ -99,7 +99,7 @@ Content-Type: application/json
         content = """wah-ho, wah-hay
 
 --foomfoomfoom
-Content-Type: message/http-response
+Content-Type: application/http-response
 Multipart-Request-ID: 2
 
 200 OK
@@ -107,7 +107,7 @@ Content-Type: application/json
 
 {"name": "drang"}
 --foomfoomfoom
-Content-Type: message/http-response
+Content-Type: application/http-response
 Multipart-Request-ID: 1
 
 200 OK
@@ -159,7 +159,7 @@ Content-Type: application/json
         content = """wah-ho, wah-hay
 
 --foomfoomfoom
-Content-Type: message/http-response
+Content-Type: application/http-response
 Multipart-Request-ID: 2
 
 200 OK
@@ -167,7 +167,7 @@ Content-Type: application/json
 
 {"name": "drang"}
 --foomfoomfoom
-Content-Type: message/http-response
+Content-Type: application/http-response
 Multipart-Request-ID: 1
 
 404 Not Found
@@ -229,7 +229,7 @@ Content-Type: application/json
         content  = """OMG HAI
 
 --=={{[[ ASFDASF ]]}}==
-Content-Type: message/http-response
+Content-Type: application/http-response
 Multipart-Request-ID: 1
 
 304 Not Modified
