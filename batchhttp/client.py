@@ -515,6 +515,9 @@ class BatchClient(httplib2.Http):
         if not hasattr(self, 'batchrequest'):
             raise BatchError("There's no open batch request to complete")
         try:
+            # FIXME: the count here is sometimes inaccurate, if subrequest
+            # items exist that result in a ReferenceError exception when
+            # attempting to include them in the request.
             log.warning('Making batch request for %d items' % len(self.batchrequest))
             self.batchrequest.process(self, self.endpoint)
         finally:
