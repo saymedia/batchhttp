@@ -554,9 +554,13 @@ class BatchClient(httplib2.Http):
 
     def request(self, uri, method="GET", body=None, headers=None, redirections=httplib2.DEFAULT_MAX_REDIRECTS, connection_type=None):
         if log.isEnabledFor(logging.DEBUG):
+            if headers is None:
+                headeritems = ()
+            else:
+                headeritems = headers.items()
             log.debug('Making request:\n%s %s\n%s\n\n%s', method, uri,
                 '\n'.join([
-                    '%s: %s' % (k, v) for k, v in headers.items()
+                    '%s: %s' % (k, v) for k, v in headeritems
                 ]), body or '')
 
         response, content = super(BatchClient, self).request(uri, method, body, headers, redirections, connection_type)
