@@ -22,7 +22,7 @@ import httplib2
 
 from batchhttp.multipart import MultipartHTTPMessage, HTTPRequestMessage
 
-log = logging.getLogger('batchhttp.client')
+log = logging.getLogger(__name__)
 
 # FIXME: shouldn't be necessary... endpoint URL should
 # be able to handle batch requests.
@@ -553,20 +553,22 @@ class BatchClient(httplib2.Http):
         self.batchrequest.add(reqinfo, callback)
 
     def request(self, uri, method="GET", body=None, headers=None, redirections=httplib2.DEFAULT_MAX_REDIRECTS, connection_type=None):
-        if log.isEnabledFor(logging.DEBUG):
+        req_log = logging.getLogger('.'.join((__name__, 'request')))
+        if req_log.isEnabledFor(logging.DEBUG):
             if headers is None:
                 headeritems = ()
             else:
                 headeritems = headers.items()
-            log.debug('Making request:\n%s %s\n%s\n\n%s', method, uri,
+            req_log.debug('Making request:\n%s %s\n%s\n\n%s', method, uri,
                 '\n'.join([
                     '%s: %s' % (k, v) for k, v in headeritems
                 ]), body or '')
 
         response, content = super(BatchClient, self).request(uri, method, body, headers, redirections, connection_type)
 
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug('Got response:\n%s\n\n%s',
+        resp_log = logging.getLogger('.'.join((__name__, 'response')))
+        if resp_log.isEnabledFor(logging.DEBUG):
+            resp_log.debug('Got response:\n%s\n\n%s',
                 '\n'.join([
                     '%s: %s' % (k, v) for k, v in response.items()
                 ]), content)
