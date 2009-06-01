@@ -13,6 +13,7 @@ import batchhttp.client
 from batchhttp.client import BatchError, BatchClient
 from tests import utils
 
+
 class TestBatchRequests(unittest.TestCase):
 
     def mocksetter(self, key):
