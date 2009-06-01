@@ -493,6 +493,15 @@ class BatchClient(httplib2.Http):
 
         If a batch request is already open, a `BatchError` is raised.
 
+        In Python 2.5 or later, you can use this method with the ``with``
+        statement::
+
+        >>> with client.batch_request():
+        ...     client.batch({'uri': uri}, callback=handle_result)
+
+        The batch request is then completed automatically at the end of the
+        ``with`` block.
+
         """
         import traceback
         if hasattr(self, 'batchrequest'):
@@ -503,7 +512,9 @@ class BatchClient(httplib2.Http):
             raise BatchError("There's already an open batch request")
         self.batchrequest = BatchRequest()
         self._opened = traceback.extract_stack()
-        return self.batchrequest
+
+        # Return ourself so we can enter a "with" context.
+        return self
 
     def complete_batch(self):
         """Closes a batch request, submitting it and dispatching the
@@ -574,3 +585,14 @@ class BatchClient(httplib2.Http):
                 ]), content)
 
         return response, content
+
+    def __enter__(self):
+        return self.batchrequest
+
+    def __exit__(self, *exc_info):
+        if None not in exc_info:
+            # Exception! Let's forget the whole thing.
+            self.clear_batch()
+        else:
+            # Finished the context. Try to complete the request.
+            self.complete_batch()
