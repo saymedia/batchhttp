@@ -1,13 +1,14 @@
 from __future__ import with_statement
 
-import unittest
-import logging
-import httplib
-import httplib2
-import re
-import mox
 import email
 import email.message
+import httplib
+import logging
+import re
+import unittest
+
+import httplib2
+import mox
 
 import batchhttp.client
 from batchhttp.client import BatchError, BatchClient
