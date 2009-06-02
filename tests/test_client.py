@@ -1,7 +1,8 @@
-from __future__ import with_statement
-
 import email
-import email.message
+try:
+    from email import message
+except ImportError:
+    import email.Message as message
 import httplib
 import logging
 import re
@@ -9,6 +10,7 @@ import unittest
 
 import httplib2
 import mox
+import nose
 
 import batchhttp.client
 from batchhttp.client import BatchError, BatchClient
@@ -73,7 +75,7 @@ Content-Type: application/json
         self.assertEquals(self.headers['MIME-Version'], '1.0')
 
         # Parse the headers through email.message to test the Content-Type value.
-        mess = email.message.Message()
+        mess = message.Message()
         for header, value in self.headers.iteritems():
             mess[header] = value
         self.assertEquals(mess.get_content_type(), 'multipart/parallel')
@@ -296,56 +298,6 @@ content-location: http://example.com/moose\r
     def testAuthorizations(self):
         raise NotImplementedError()
 
-    def testWith(self):
-
-        response = httplib2.Response({
-            'status': '207',
-            'content-type': 'multipart/parallel; boundary="=={{[[ ASFDASF ]]}}=="',
-        })
-        content  = """OMG HAI
-
---=={{[[ ASFDASF ]]}}==
-Content-Type: application/http-response
-Multipart-Request-ID: 1
-
-200 OK
-Content-Type: application/json
-
-{"name": "Potatoshop"}
---=={{[[ ASFDASF ]]}}==--"""
-
-        self.body, self.headers = None, None
-
-        bat = BatchClient(endpoint='http://127.0.0.1:8000/batch-processor')
-
-        m = mox.Mox()
-        m.StubOutWithMock(bat, 'request')
-        bat.request(
-            'http://127.0.0.1:8000/batch-processor',
-            method='POST',
-            headers=self.mocksetter('headers'),
-            body=self.mocksetter('body'),
-        ).AndReturn((response, content))
-        bat.cache = None
-        bat.authorizations = []
-
-        m.ReplayAll()
-
-        def callback(url, subresponse, subcontent):
-            self.subresponseWith = subresponse
-            self.subcontentWith  = subcontent
-
-        # Try using "with" syntax here.
-        with bat.batch_request() as request:
-            self.assert_(request is bat.batchrequest)
-            bat.batch({'uri': 'http://example.com/moose'}, callback=callback)
-
-        # Make sure the request happened.
-        m.VerifyAll()
-
-        self.assert_(hasattr(self, 'subresponseWith'))
-        self.assert_(hasattr(self, 'subcontentWith'))
-
     def testBatchClientErrors(self):
 
         bat = BatchClient()
@@ -355,6 +307,14 @@ Content-Type: application/json
 
         bat.batch_request()
         self.assertRaises(BatchError, lambda: bat.batch_request() )
+
+
+try:
+    from tests.client_with import TestBatchRequestsWithSyntax
+except SyntaxError:
+    class TestBatchRequestsWithSyntax(unittest.TestCase):
+        def testWith(self):
+            raise nose.SkipTest('No "with" statement in this version of Python')
 
 
 if __name__ == '__main__':
