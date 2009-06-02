@@ -8,8 +8,12 @@ callbacks.
 """
 
 import email
-import email.feedparser
-import email.header
+try:
+    from email.feedparser import FeedParser
+    from email.header import Header
+except ImportError:
+    from email.Parser import FeedParser
+    from email.Header import Header
 from httplib import HTTPException
 import logging
 import mimetools
@@ -426,16 +430,16 @@ class BatchRequest(object):
         # Messages, as the HTTP status line will confuse the parser and
         # we'll just get a text/plain Message with our response for the
         # payload anyway.
-        class HttpAverseParser(email.feedparser.FeedParser):
+        class HttpAverseParser(FeedParser):
             def _parse_headers(self, lines):
-                email.feedparser.FeedParser._parse_headers(self, lines)
+                FeedParser._parse_headers(self, lines)
                 if self._cur.get_content_type() == 'application/http-response':
                     self._set_headersonly()
 
         p = HttpAverseParser()
         headers = ""
         for hdr in response:
-            headers += "%s: %s\n" % (hdr, email.header.Header(response[hdr]).encode(), )
+            headers += "%s: %s\n" % (hdr, Header(response[hdr]).encode(), )
 
         p.feed(headers)
         p.feed("\n")
