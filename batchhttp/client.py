@@ -400,6 +400,9 @@ class BatchRequest(object):
         for hdr in hdrs:
             headers[hdr[0]] = hdr[1]
 
+        # lets prefer gzip encoding on the batch response
+        headers['accept-encoding'] = 'gzip;q=1.0, identity; q=0.5, *;q=0'
+
         return headers, content
 
     def handle_response(self, http, response, content):
