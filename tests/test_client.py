@@ -71,7 +71,8 @@ Content-Type: application/json
         m.VerifyAll()
 
         self.assert_(self.headers is not None)
-        self.assertEquals(sorted(self.headers.keys()), ['Content-Type', 'MIME-Version'])
+        headers = sorted([h.lower() for h in self.headers.keys()])
+        self.assertEquals(headers, ['accept-encoding', 'content-type', 'mime-version'])
         self.assertEquals(self.headers['MIME-Version'], '1.0')
 
         # Parse the headers through email.message to test the Content-Type value.
@@ -289,7 +290,8 @@ content-location: http://example.com/moose\r
 
         m.VerifyAll()
 
-        self.assertEquals(sorted(self.headers.keys()), ['Content-Type', 'MIME-Version'])
+        headers = sorted([h.lower() for h in self.headers.keys()])
+        self.assertEquals(headers, ['accept-encoding', 'content-type', 'mime-version'])
         self.assertEquals(self.headers['MIME-Version'], '1.0')
 
         self.assertEquals(self.subcontent, '{"name": "Potatoshop"}')
