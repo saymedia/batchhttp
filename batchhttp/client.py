@@ -28,10 +28,6 @@ from batchhttp.multipart import MultipartHTTPMessage, HTTPRequestMessage
 
 log = logging.getLogger(__name__)
 
-# FIXME: shouldn't be necessary... endpoint URL should
-# be able to handle batch requests.
-BATCH_ENDPOINT = 'http://127.0.0.1:8000/'
-
 
 class BatchError(Exception):
     """An Exception raised when the `BatchClient` cannot open, add, or
@@ -484,14 +480,12 @@ class BatchClient(httplib2.Http):
         """Configures the `BatchClient` instance to use the given batch
         processor endpoint.
 
-        Optional parameter `endpoint` is the base URL at which to find the
-        batch processor to which to submit the batch request. The batch
-        processor should be the resource ``/batch-processor`` at the root of
-        the site specified in `endpoint`.
+        Parameter `endpoint` is the base URL at which to find the batch
+        processor to which to submit the batch request. The batch processor
+        should be the resource ``/batch-processor`` at the root of the site
+        specified in `endpoint`.
 
         """
-        if endpoint is None:
-            endpoint = BATCH_ENDPOINT
         self.endpoint = endpoint
         super(BatchClient, self).__init__()
 
@@ -532,6 +526,8 @@ class BatchClient(httplib2.Http):
         """
         if not hasattr(self, 'batchrequest'):
             raise BatchError("There's no open batch request to complete")
+        if self.endpoint is None:
+            raise BatchError("There's no batch processor endpoint to which to send a batch request")
         try:
             # FIXME: the count here is sometimes inaccurate, if subrequest
             # items exist that result in a ReferenceError exception when

@@ -123,7 +123,7 @@ Content-Type: application/json
 
         self.headers, self.body = None, None
 
-        bat = BatchClient()
+        bat = BatchClient(endpoint="http://127.0.0.1:8000/")
 
         m = mox.Mox()
         m.StubOutWithMock(bat, 'request')
@@ -183,7 +183,7 @@ Content-Type: application/json
 
         self.headers, self.body = None, None
 
-        bat = BatchClient()
+        bat = BatchClient(endpoint="http://127.0.0.1:8000/")
 
         m = mox.Mox()
         m.StubOutWithMock(bat, 'request')
@@ -245,7 +245,7 @@ Etag: 7
 
         self.body, self.headers = None, None
 
-        bat = BatchClient()
+        bat = BatchClient(endpoint="http://127.0.0.1:8000/")
 
         m = mox.Mox()
         m.StubOutWithMock(bat, 'request')
@@ -302,13 +302,18 @@ content-location: http://example.com/moose\r
 
     def testBatchClientErrors(self):
 
-        bat = BatchClient()
+        bat = BatchClient(endpoint="http://127.0.0.1:8000/")
         self.assertRaises(BatchError, lambda: bat.complete_batch() )
 
         self.assertRaises(BatchError, lambda: bat.batch({'uri': 'http://example.com/tiny'}, lambda: None))
 
         bat.batch_request()
         self.assertRaises(BatchError, lambda: bat.batch_request() )
+
+        bat = BatchClient()
+        bat.batch_request()
+        bat.batch({'uri': 'http://example.com/tiny'}, lambda: None)
+        self.assertRaises(BatchError, lambda: bat.complete_batch() )
 
 
 try:
