@@ -233,8 +233,8 @@ class Request(object):
             # Let Http.request fill in the response from its cache.
             response, realbody = fh.request(**self.reqinfo)
 
-            # TODO: Fix up the status code, since httplib2 writes it through
-            # to the cache, who knows why.
+            # Fix up the status code, since httplib2 writes the 304 through
+            # to the cache, but we want to treat it like a 200.
             if response.status == 304:
                 response.status = 200
 
@@ -303,9 +303,10 @@ class Request(object):
         message['status'] = int(status_code)
 
         httpresponse = httplib2.Response(message)
-        # TODO: httplib2.Response doesn't lower case header keys itself,
-        # so a Response from an email Message is inconsistent with one from
-        # an httplib.HTTPResponse. Enforce lower case ourselves for now.
+
+        # httplib2.Response doesn't lower case header keys itself, so a
+        # Response from an email Message is inconsistent with one from an
+        # httplib.HTTPResponse. Enforce lower case here.
         for k, v in httpresponse.items():
             del httpresponse[k]
             httpresponse[k.lower()] = v
