@@ -184,6 +184,10 @@ class Request(object):
         else:
             self.callback = WeakCallback(callback)
 
+    def alive(self):
+        """Returns whether this `Request` instance's callback still exists."""
+        return self.callback.alive()
+
     def _update_headers_from_cache(self, http):
         objreq = self.reqinfo
 
@@ -325,13 +329,14 @@ class BatchRequest(object):
         self.requests = list()
 
     def __len__(self):
-        """Returns the number of subrequests there are.
+        """Returns the number of subrequests there are to perform.
 
-        This count *includes* subrequests that will not be performed due to
-        the garbage collection of their callbacks.
+        This count *does not include* subrequests that will not be performed
+        due to the garbage collection of their callbacks. Callbacks that have
+        already expired don't count.
 
         """
-        return len(self.requests)
+        return len([r for r in self.requests if r.alive()])
 
     def add(self, reqinfo, callback):
         """Adds a new `Request` instance to this `BatchRequest` instance.
@@ -529,9 +534,6 @@ class BatchClient(httplib2.Http):
         if self.endpoint is None:
             raise BatchError("There's no batch processor endpoint to which to send a batch request")
         try:
-            # FIXME: the count here is sometimes inaccurate, if subrequest
-            # items exist that result in a ReferenceError exception when
-            # attempting to include them in the request.
             log.warning('Making batch request for %d items' % len(self.batchrequest))
             self.batchrequest.process(self, self.endpoint)
         finally:

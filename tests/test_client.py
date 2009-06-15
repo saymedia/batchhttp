@@ -300,6 +300,39 @@ content-location: http://example.com/moose\r
     def testAuthorizations(self):
         raise NotImplementedError()
 
+    def testLength(self):
+
+        keep = lambda: None
+
+        bat = BatchClient(endpoint="http://example.com/")
+        bat.batch_request()
+        bat.batch({'uri': 'http://example.com/tiny'}, keep)
+        bat.batch({'uri': 'http://example.com/small'}, keep)
+        bat.batch({'uri': 'http://example.com/medium'}, keep)
+
+        self.assertEquals(len(bat.batchrequest), 3)
+
+        toss = lambda: None
+        bat = BatchClient(endpoint="http://example.com/")
+        bat.batch_request()
+        bat.batch({'uri': 'http://example.com/tiny'}, keep)
+        bat.batch({'uri': 'http://example.com/small'}, toss)
+        bat.batch({'uri': 'http://example.com/medium'}, toss)
+        bat.batch({'uri': 'http://example.com/large'}, keep)
+        bat.batch({'uri': 'http://example.com/huge'}, toss)
+        del toss
+
+        self.assertEquals(len(bat.batchrequest), 2)
+
+        toss = lambda: None
+        bat = BatchClient(endpoint="http://example.com/")
+        bat.batch_request()
+        bat.batch({'uri': 'http://example.com/tiny'}, toss)
+        bat.batch({'uri': 'http://example.com/small'}, toss)
+        del toss
+
+        self.assertEquals(len(bat.batchrequest), 0)
+
     def testBatchClientErrors(self):
 
         bat = BatchClient(endpoint="http://127.0.0.1:8000/")
