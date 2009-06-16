@@ -35,6 +35,18 @@ class BatchError(Exception):
     pass
 
 
+class NonBatchResponseError(BatchError):
+    """An exception raised when the `BatchClient` receives a response 
+    with an HTTP status code other than 207."""
+    def __init__(self, status, reason):
+        self.status = status
+        self.reason = reason
+        super(NonBatchResponseError, self).__init__(
+            'Received non-batch response: %d %s' % 
+            (self.status, self.reason)
+        )
+
+
 class WeaklyBoundMethod(object):
 
     """A bound method that only weakly holds the instance to which it's bound.
@@ -426,8 +438,7 @@ class BatchRequest(object):
         if response.status != 207:
             log.debug('Received non-batch response %d %s with content:\n%s'
                 % (response.status, response.reason, content))
-            raise BatchError('Received non-batch response: %d %s'
-                % (response.status, response.reason))
+            raise NonBatchResponseError(response.status, response.reason)
 
         # parse content into pieces
 
