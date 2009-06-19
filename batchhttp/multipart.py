@@ -225,7 +225,6 @@ class HTTPRequestMessage(HTTPMessage):
         HTTPMessage.__init__(self)
         self.set_type('application/http-request')
         self.add_header('Multipart-Request-ID', str(request_id))
-        # TODO: look at HTTP Content-type and decide on quopri or base64.
         self.add_header('Content-transfer-encoding', 'quoted-printable')
         payload = StringIO()
         quopri.encode(StringIO(http_request), payload, quotetabs=False)
@@ -238,7 +237,6 @@ class HTTPResponseMessage(HTTPMessage):
         HTTPMessage.__init__(self)
         self.set_type('application/http-response')
         self.add_header('Multipart-Request-ID', str(request_id))
-        # TODO: look at HTTP Content-type and decide on quopri or base64
         self.add_header('Content-transfer-encoding', 'quoted-printable')
         payload = StringIO()
         quopri.encode(StringIO(http_response), payload, quotetabs=False)
