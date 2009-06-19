@@ -207,8 +207,6 @@ class Request(object):
             class StopCharade(Exception):
                 pass
 
-            # TODO: implement this with a fake "connection" instead of
-            # overriding Http methods
             class VolatileHttp(httplib2.Http):
                 def _conn_request(self, conn, request_uri, method, body, headers):
                     self.url     = request_uri
@@ -231,8 +229,6 @@ class Request(object):
 
     def _update_response_from_cache(self, http, response, realbody):
         if http.cache is not None or http.authorizations:
-            # TODO: implement this with a fake "connection" instead of
-            # overriding Http methods
             class FauxHttp(httplib2.Http):
                 def _conn_request(self, conn, request_uri, method, body, headers):
                     return response, httplib2._decompressContent(response, realbody)
