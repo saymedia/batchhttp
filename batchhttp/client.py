@@ -207,39 +207,65 @@ class Request(object):
             class StopCharade(Exception):
                 pass
 
-            class VolatileHttp(httplib2.Http):
-                def _conn_request(self, conn, request_uri, method, body, headers):
+            class CaptureConnections(object):
+                def __contains__(self, key):
+                    return True
+                def __getitem__(self, key):
+                    return self.http
+
+            class CaptureHTTPConnection(object):
+                def request(self, method, request_uri, body, headers):
                     self.url     = request_uri
                     self.body    = body
                     self.headers = headers
                     raise StopCharade()
 
-            vh = VolatileHttp()
-            vh.cache          = http.cache
-            vh.authorizations = http.authorizations
-
+            real_connections = http.connections
+            conns = CaptureConnections()
+            conn = CaptureHTTPConnection()
+            conns.http = conn
+            http.connections = conns
             try:
-                vh.request(**objreq)
+                http.request(**objreq)
             except StopCharade:
-                return vh.headers, vh.body
+                return conn.headers, conn.body
+            finally:
+                # Put the real connections back.
+                http.connections = real_connections
 
-        # We didn't finish our _request, or there was no cache, so return what
+        # We didn't finish our request, or there was no cache, so return what
         # we were given.
         return objreq.get('headers', {}), objreq.get('body')
 
     def _update_response_from_cache(self, http, response, realbody):
         if http.cache is not None or http.authorizations:
-            class FauxHttp(httplib2.Http):
-                def _conn_request(self, conn, request_uri, method, body, headers):
-                    return response, httplib2._decompressContent(response, realbody)
+            class HandoffConnections(object):
+                def __contains__(self, key):
+                    return True
+                def __getitem__(self, key):
+                    return self.http
 
-            fh = FauxHttp()
-            fh.cache            = http.cache
-            fh.authorizations   = http.authorizations
-            fh.follow_redirects = False
+            class HandoffHTTPConnection(object):
+                def request(self, method, request_uri, body, headers):
+                    pass
 
-            # Let Http.request fill in the response from its cache.
-            response, realbody = fh.request(**self.reqinfo)
+                def read(self):
+                    return httplib2._decompressContent(response, realbody)
+
+                def getresponse(self):
+                    return self
+
+                def __getattr__(self, key):
+                    return getattr(response, key)
+
+            real_connections = http.connections
+            fc = HandoffConnections()
+            fc.http = HandoffHTTPConnection()
+            http.connections = fc
+            try:
+                response, realbody = http.request(**self.reqinfo)
+            finally:
+                http.connections = real_connections
 
             # Fix up the status code, since httplib2 writes the 304 through
             # to the cache, but we want to treat it like a 200.

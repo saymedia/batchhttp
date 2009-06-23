@@ -227,10 +227,9 @@ Content-Type: application/json
 
     def testCacheful(self):
 
-        response = httplib2.Response({
-            'status': '207',
+        response = {
             'content-type': 'multipart/parallel; boundary="=={{[[ ASFDASF ]]}}=="',
-        })
+        }
         content  = """OMG HAI
 
 --=={{[[ ASFDASF ]]}}==
@@ -248,14 +247,19 @@ Etag: 7
         bat = BatchClient(endpoint="http://127.0.0.1:8000/")
 
         m = mox.Mox()
-        m.StubOutWithMock(bat, 'request')
-        bat.request(
-            'http://127.0.0.1:8000/batch-processor',
-            method='POST',
-            headers=self.mocksetter('headers'),
-            body=self.mocksetter('body'),
-        ).AndReturn((response, content))
-        bat.authorizations = []
+
+        mr = m.CreateMock(httplib.HTTPResponse)
+        mr.read().AndReturn(content)
+        mr.getheaders().AndReturn(response.iteritems())
+        mr.status = 207
+        mr.reason = 'Multi-Status'
+        mr.version = 'HTTP/1.1'
+
+        mc = m.CreateMock(httplib.HTTPConnection)
+        mc.request('POST', '/batch-processor', self.mocksetter('body'), self.mocksetter('headers'))
+        mc.getresponse().AndReturn(mr)
+
+        bat.connections = {'http:127.0.0.1:8000': mc}
 
         bat.cache = m.CreateMock(httplib2.FileCache)
         bat.cache.get('http://example.com/moose').AndReturn("""status: 200\r
@@ -264,6 +268,8 @@ content-location: http://example.com/moose\r
 etag: 7\r
 \r
 {"name": "Potatoshop"}""")
+        bat.cache.get('http://127.0.0.1:8000/batch-processor').AndReturn(None)
+        bat.cache.delete('http://127.0.0.1:8000/batch-processor')
         bat.cache.get('http://example.com/moose').AndReturn("""status: 200\r
 content-type: application/json\r
 content-location: http://example.com/moose\r
@@ -290,9 +296,11 @@ content-location: http://example.com/moose\r
 
         m.VerifyAll()
 
-        headers = sorted([h.lower() for h in self.headers.keys()])
-        self.assertEquals(headers, ['accept-encoding', 'content-type', 'mime-version'])
-        self.assertEquals(self.headers['MIME-Version'], '1.0')
+        # We captured headers after httplib2 processed them for once, so
+        # they're already lowercase and there's a User-Agent header.
+        headers = sorted([h for h in self.headers.keys()])
+        self.assertEquals(headers, ['accept-encoding', 'content-type', 'mime-version', 'user-agent'])
+        self.assertEquals(self.headers['mime-version'], '1.0')
 
         self.assertEquals(self.subcontent, '{"name": "Potatoshop"}')
 
