@@ -226,9 +226,10 @@ class Request(object):
             conns.http = conn
             http.connections = conns
             try:
-                http.request(**objreq)
-            except StopCharade:
-                return conn.headers, conn.body
+                try:
+                    http.request(**objreq)
+                except StopCharade:
+                    return conn.headers, conn.body
             finally:
                 # Put the real connections back.
                 http.connections = real_connections
