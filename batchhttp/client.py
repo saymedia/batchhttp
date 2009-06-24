@@ -263,10 +263,19 @@ class Request(object):
             fc = HandoffConnections()
             fc.http = HandoffHTTPConnection()
             http.connections = fc
+
+            unset = object()
+            real_follow_redirects = getattr(http, 'follow_redirects', unset)
+            http.follow_redirects = False
+
             try:
                 response, realbody = http.request(**self.reqinfo)
             finally:
                 http.connections = real_connections
+                if real_follow_redirects is unset:
+                    del http.follow_redirects
+                else:
+                    http.follow_redirects = real_follow_redirects
 
             # Fix up the status code, since httplib2 writes the 304 through
             # to the cache, but we want to treat it like a 200.
