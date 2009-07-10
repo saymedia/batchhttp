@@ -13,7 +13,7 @@ import mox
 import nose
 
 import batchhttp.client
-from batchhttp.client import BatchError, BatchClient
+from batchhttp.client import BatchClient, BatchError, NonBatchResponseError
 from tests import utils
 
 
@@ -94,6 +94,42 @@ Content-Type: application/json
         self.assert_('Multipart-Request-ID' in subresp_msg)
 
         self.assertEquals(self.subcontent, '{"name": "Potatoshop"}')
+
+    def testBadResponse(self):
+
+        response = httplib2.Response({
+            'status': '500',
+            'content-type': 'text/plain',
+        })
+        content  = """ o/` an error occurred o/` """
+
+        self.body, self.headers = None, None
+
+        bat = BatchClient(endpoint='http://127.0.0.1:8000/batch-processor')
+
+        m = mox.Mox()
+        m.StubOutWithMock(bat, 'request')
+        bat.request(
+            'http://127.0.0.1:8000/batch-processor',
+            method='POST',
+            headers=self.mocksetter('headers'),
+            body=self.mocksetter('body'),
+        ).AndReturn((response, content))
+        bat.cache = None
+        bat.authorizations = []
+
+        m.ReplayAll()
+
+        def callback(url, subresponse, subcontent):
+            self.subresponse = subresponse
+            self.subcontent  = subcontent
+
+        bat.batch_request()
+        bat.batch({'uri': 'http://example.com/moose'}, callback=callback)
+
+        self.assertRaises(NonBatchResponseError, bat.complete_batch)
+
+        m.VerifyAll()
 
     def testMulti(self):
 

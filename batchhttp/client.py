@@ -41,10 +41,9 @@ class NonBatchResponseError(BatchError):
     def __init__(self, status, reason):
         self.status = status
         self.reason = reason
-        super(NonBatchResponseError, self).__init__(
-            'Received non-batch response: %d %s' % 
-            (self.status, self.reason)
-        )
+        message = ('Received non-batch response: %d %s'
+            % (self.status, self.reason))
+        BatchError.__init__(self, message)
 
 
 class WeaklyBoundMethod(object):
