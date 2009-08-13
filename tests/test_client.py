@@ -25,7 +25,7 @@ class TestBatchRequests(unittest.TestCase):
             return True
         return mox.Func(mockset)
 
-    def testLeast(self):
+    def test_least(self):
 
         response = httplib2.Response({
             'status': '207',
@@ -95,7 +95,7 @@ Content-Type: application/json
 
         self.assertEquals(self.subcontent, '{"name": "Potatoshop"}')
 
-    def testBadResponse(self):
+    def test_bad_response(self):
 
         response = httplib2.Response({
             'status': '500',
@@ -131,7 +131,7 @@ Content-Type: application/json
 
         m.VerifyAll()
 
-    def testMulti(self):
+    def test_multi(self):
 
         response = httplib2.Response({
             'status': '207',
@@ -191,7 +191,7 @@ Content-Type: application/json
 
         m.VerifyAll()
 
-    def testNotFound(self):
+    def test_not_found(self):
 
         response = httplib2.Response({
             'status': '207',
@@ -234,7 +234,7 @@ Content-Type: application/json
 
         m.ReplayAll()
 
-        def callbackMoose(url, subresponse, subcontent):
+        def callback_moose(url, subresponse, subcontent):
             self.subresponseMoose = subresponse
             self.subcontentMoose  = subcontent
 
@@ -243,13 +243,13 @@ Content-Type: application/json
             # callback percolate out.
             raise httplib.HTTPException('404 Not Found')
 
-        def callbackFred(url, subresponse, subcontent):
+        def callback_fred(url, subresponse, subcontent):
             self.subresponseFred = subresponse
             self.subcontentFred  = subcontent
 
         bat.batch_request()
-        bat.batch({'uri': 'http://example.com/moose'}, callbackMoose)
-        bat.batch({'uri': 'http://example.com/fred'},  callbackFred)
+        bat.batch({'uri': 'http://example.com/moose'}, callback_moose)
+        bat.batch({'uri': 'http://example.com/fred'},  callback_fred)
 
         self.assertRaises(httplib.HTTPException, lambda: bat.complete_batch() )
 
@@ -261,7 +261,7 @@ Content-Type: application/json
 
         m.VerifyAll()
 
-    def testCacheful(self):
+    def test_cacheful(self):
 
         response = {
             'content-type': 'multipart/parallel; boundary="=={{[[ ASFDASF ]]}}=="',
@@ -341,10 +341,10 @@ content-location: http://example.com/moose\r
         self.assertEquals(self.subcontent, '{"name": "Potatoshop"}')
 
     @utils.todo
-    def testAuthorizations(self):
+    def test_authorizations(self):
         raise NotImplementedError()
 
-    def testLength(self):
+    def test_length(self):
 
         keep = lambda: None
 
@@ -377,7 +377,7 @@ content-location: http://example.com/moose\r
 
         self.assertEquals(len(bat.batchrequest), 0)
 
-    def testBatchClientErrors(self):
+    def test_batch_client_errors(self):
 
         bat = BatchClient(endpoint="http://127.0.0.1:8000/")
         self.assertRaises(BatchError, lambda: bat.complete_batch() )
@@ -393,11 +393,13 @@ content-location: http://example.com/moose\r
         self.assertRaises(BatchError, lambda: bat.complete_batch() )
 
 
+# Try including our "with" syntax tests, but skip them if we're in 2.4 where
+# "with" syntax is unavailable.
 try:
     from tests.client_with import TestBatchRequestsWithSyntax
 except SyntaxError:
     class TestBatchRequestsWithSyntax(unittest.TestCase):
-        def testWith(self):
+        def test_with(self):
             raise nose.SkipTest('No "with" statement in this version of Python')
 
 

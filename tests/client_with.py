@@ -18,7 +18,7 @@ class TestBatchRequestsWithSyntax(unittest.TestCase):
             return True
         return mox.Func(mockset)
 
-    def testWith(self):
+    def test_with(self):
 
         response = httplib2.Response({
             'status': '207',
