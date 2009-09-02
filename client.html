@@ -1,0 +1,372 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The batch HTTP client &mdash; batchhttp v1.0 documentation</title>
+    <link rel="stylesheet" href="static/default.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="batchhttp v1.0 documentation" href="index.html" />
+    <link rel="next" title="HTTP Multipart Utilities" href="multipart.html" />
+    <link rel="prev" title="batchhttp" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="multipart.html" title="HTTP Multipart Utilities"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="batchhttp"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">batchhttp v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-batchhttp.client">
+<h1>The batch HTTP client<a class="headerlink" href="#module-batchhttp.client" title="Permalink to this headline">¶</a></h1>
+<p>The batch HTTP client provides a convenience interface around an
+<cite>httplib2.Http</cite> instance for combining multiple requests into one MIME-encoded
+batch request, dispatching the subresponses to the requests&#8217; associated
+callbacks.</p>
+<dl class="class">
+<dt id="batchhttp.client.BatchClient">
+<em class="property">
+class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">BatchClient</tt><big>(</big><em>endpoint=None</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort of an HTTP client for performing a batch HTTP request.</p>
+<dl class="method">
+<dt id="batchhttp.client.BatchClient.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>endpoint=None</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configures the <cite>BatchClient</cite> instance to use the given batch
+processor endpoint.</p>
+<p>Parameter <cite>endpoint</cite> is the base URL at which to find the batch
+processor to which to submit the batch request. The batch processor
+should be the resource <tt class="docutils literal"><span class="pre">/batch-processor</span></tt> at the root of the site
+specified in <cite>endpoint</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchClient.batch">
+<tt class="descname">batch</tt><big>(</big><em>reqinfo</em>, <em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given subrequest to the batch request.</p>
+<p>Parameter <cite>reqinfo</cite> is the HTTP request to perform, specified as a
+mapping of keyword arguments suitable for passing to an
+<cite>httplib2.Http.request()</cite> call.</p>
+<p>Parameter <cite>callback</cite> is the callable object to which to supply the
+subresponse once the batch request is performed. No strong reference
+to <cite>callback</cite> is kept by the <cite>Request</cite> instance, so unless it (or its
+bound instance, if it&#8217;s an <cite>instancemethod</cite>) continues to be
+referenced elsewhere, the subrequest will be omitted from the batch
+request and <cite>callback</cite> will not be called with a subresponse.</p>
+<p>If no batch request is open, a <cite>BatchError</cite> is raised.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchClient.batch_request">
+<tt class="descname">batch_request</tt><big>(</big><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.batch_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a batch request.</p>
+<p>If a batch request is already open, a <cite>BatchError</cite> is raised.</p>
+<p>In Python 2.5 or later, you can use this method with the <tt class="docutils literal"><span class="pre">with</span></tt>
+statement:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">client</span><span class="o">.</span><span class="n">batch_request</span><span class="p">():</span>
+</pre></div>
+</div>
+<p>...     client.batch({&#8216;uri&#8217;: uri}, callback=handle_result)</p>
+<p>The batch request is then completed automatically at the end of the
+<tt class="docutils literal"><span class="pre">with</span></tt> block.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchClient.clear_batch">
+<tt class="descname">clear_batch</tt><big>(</big><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.clear_batch" title="Permalink to this definition">¶</a></dt>
+<dd>Closes a batch request without performing it.</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchClient.complete_batch">
+<tt class="descname">complete_batch</tt><big>(</big><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.complete_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes a batch request, submitting it and dispatching the
+subresponses.</p>
+<p>If no batch request is open, a <cite>BatchError</cite> is raised.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="batchhttp.client.BatchError">
+<em class="property">
+exception </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">BatchError</tt><a class="headerlink" href="#batchhttp.client.BatchError" title="Permalink to this definition">¶</a></dt>
+<dd>An Exception raised when the <cite>BatchClient</cite> cannot open, add, or
+complete a batch request.</dd></dl>
+
+<dl class="class">
+<dt id="batchhttp.client.BatchRequest">
+<em class="property">
+class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">BatchRequest</tt><a class="headerlink" href="#batchhttp.client.BatchRequest" title="Permalink to this definition">¶</a></dt>
+<dd><p>A collection of HTTP responses that should be performed in a batch as
+one response.</p>
+<dl class="method">
+<dt id="batchhttp.client.BatchRequest.add">
+<tt class="descname">add</tt><big>(</big><em>reqinfo</em>, <em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchRequest.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a new <cite>Request</cite> instance to this <cite>BatchRequest</cite> instance.</p>
+<p>Parameters <cite>reqinfo</cite> and <cite>callback</cite> should be an HTTP request info
+mapping and a callable object, suitable for using to construct a new
+<cite>Request</cite> instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchRequest.construct">
+<tt class="descname">construct</tt><big>(</big><em>http</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchRequest.construct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a batch HTTP request from the <cite>BatchRequest</cite> instance&#8217;s
+constituent subrequests.</p>
+<p>The batch request is returned as a tuple containing a mapping of HTTP
+headers and the text of the request body.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchRequest.handle_response">
+<tt class="descname">handle_response</tt><big>(</big><em>http</em>, <em>response</em>, <em>content</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchRequest.handle_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dispatches the subresponses contained in the given batch HTTP
+response to the associated callbacks.</p>
+<p>Parameter <cite>http</cite> is the <cite>httplib2.Http</cite> instance to use for retrieving
+unmodified subresponse bodies, updating authorization headers, etc.
+Parameters <cite>response</cite> and <cite>content</cite> are the <cite>httplib2.Response</cite>
+instance representing the batch HTTP response information and its
+associated text content respectively.</p>
+<p>If the response is not a successful <tt class="docutils literal"><span class="pre">207</span> <span class="pre">Multi-Status</span></tt> HTTP
+response, or the batch response content cannot be decoded into its
+constituent subresponses, a <cite>BatchError</cite> is raised.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchRequest.process">
+<tt class="descname">process</tt><big>(</big><em>http</em>, <em>endpoint</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchRequest.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs a batch request.</p>
+<p>Parameter <cite>http</cite> is an <cite>httplib2.Http</cite> instance to use when building
+subrequests and decoding subresponses as well as performing the actual
+batch HTTP request.</p>
+<p>Parameter <cite>endpoint</cite> is a URL specifying where the batch processor is.
+The batch request will be made to the <tt class="docutils literal"><span class="pre">/batch-processor</span></tt> resource at
+the root of the site named in <cite>endpoint</cite>.</p>
+<p>If this <cite>BatchRequest</cite> instance contains no <cite>Request</cite> instances that
+can deliver their subresponses, no batch request will occur.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="batchhttp.client.NonBatchResponseError">
+<em class="property">
+exception </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">NonBatchResponseError</tt><big>(</big><em>status</em>, <em>reason</em><big>)</big><a class="headerlink" href="#batchhttp.client.NonBatchResponseError" title="Permalink to this definition">¶</a></dt>
+<dd>An exception raised when the <cite>BatchClient</cite> receives a response 
+with an HTTP status code other than 207.</dd></dl>
+
+<dl class="class">
+<dt id="batchhttp.client.Request">
+<em class="property">
+class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">Request</tt><big>(</big><em>reqinfo</em>, <em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.Request" title="Permalink to this definition">¶</a></dt>
+<dd><p>A subrequest of a batched HTTP request.</p>
+<p>A batch request comprises one or more <cite>Request</cite> instances. Once the batch
+request is performed, the subresponses and their contents are dispatched
+to the callbacks of the associated <cite>Request</cite> instances.</p>
+<p>In order to reduce unnecessary subrequests that may be come into being
+before the batch request is completed, <cite>Request</cite> instances hold weak
+references to their callbacks. These weak references are instances of
+either <cite>WeaklyBoundMethod</cite> (if the requested callback is an
+<cite>instancemethod</cite>) or <cite>WeakCallback</cite> (for all other callables).</p>
+<p>If the callback ceases to be referenced by any other code between the
+creation of the <cite>Request</cite> instance and the completion of the batch request
+through a <cite>BatchClient.complete_request()</cite> call, the subrequest will be
+omitted from the batch and the callback will not be called.</p>
+<dl class="method">
+<dt id="batchhttp.client.Request.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>reqinfo</em>, <em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.Request.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the <cite>Request</cite> instance with the given request and
+subresponse callback.</p>
+<p>Parameter <cite>reqinfo</cite> is the HTTP request to perform, specified as a
+mapping of keyword arguments suitable for passing to an
+<cite>httplib2.Http.request()</cite> call.</p>
+<p>Parameter <cite>callback</cite> is the callable object to which to supply the
+subresponse once the batch request is performed. No strong reference
+to <cite>callback</cite> is kept by the <cite>Request</cite> instance, so unless it (or its
+bound instance, if it&#8217;s an <cite>instancemethod</cite>) continues to be
+referenced elsewhere, the subrequest will be omitted from the batch
+request and <cite>callback</cite> will not be called with a subresponse.</p>
+<p>Callbacks should expect three positional parameters:</p>
+<ul class="simple">
+<li>the URL of the original subrequest</li>
+<li>an <cite>httplib2.Response</cite> representing the subresponse and its headers</li>
+<li>the textual body of the subresponse</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.Request.alive">
+<tt class="descname">alive</tt><big>(</big><big>)</big><a class="headerlink" href="#batchhttp.client.Request.alive" title="Permalink to this definition">¶</a></dt>
+<dd>Returns whether this <cite>Request</cite> instance&#8217;s callback still exists.</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.Request.as_message">
+<tt class="descname">as_message</tt><big>(</big><em>http</em>, <em>id</em><big>)</big><a class="headerlink" href="#batchhttp.client.Request.as_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts this <cite>Request</cite> instance into a
+<cite>batchhttp.multipart.HTTPRequestMessage</cite> suitable for adding to a
+<cite>batchhttp.multipart.MultipartHTTPMessage</cite> instance.</p>
+<p>If this <cite>Request</cite> instance&#8217;s callback no longer exists, a
+<cite>ReferenceError</cite> is raised.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.Request.decode_response">
+<tt class="descname">decode_response</tt><big>(</big><em>http</em>, <em>part</em><big>)</big><a class="headerlink" href="#batchhttp.client.Request.decode_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes and dispatches the given subresponse to this <cite>Request</cite>
+instance&#8217;s callback.</p>
+<p>Parameter <cite>http</cite> is the <cite>httplib2.Http</cite> instance to use for retrieving
+unmodified content from cache, updating with new authorization
+headers, etc. Parameter <cite>part</cite> is the <cite>email.message.Message</cite>
+containing the subresponse content to decode.</p>
+<p>If this <cite>Request</cite> instance&#8217;s callback no longer exists, a
+<cite>ReferenceError</cite> is raised instead of decoding anything. If the
+subresponse cannot be decoded properly, a <cite>BatchError</cite> is raised.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="batchhttp.client.WeakCallback">
+<em class="property">
+class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">WeakCallback</tt><big>(</big><em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.WeakCallback" title="Permalink to this definition">¶</a></dt>
+<dd><p>A callback that is held through a weak reference.</p>
+<p>Using <cite>WeakCallback</cite> to hold an <cite>instancemethod</cite> will probably not do what
+you mean, as <cite>instancemethod</cite> instances are created on demand when you use
+the instance&#8217;s attribute of that name. To hold an <cite>instancemethod</cite> while
+weakly referring to its instance, use <cite>WeaklyBoundMethod</cite> instead.</p>
+<dl class="method">
+<dt id="batchhttp.client.WeakCallback.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.WeakCallback.__init__" title="Permalink to this definition">¶</a></dt>
+<dd>Configures this <cite>WeakCallback</cite> instance to weakly refer to callable
+<cite>callback</cite>.</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.WeakCallback.alive">
+<tt class="descname">alive</tt><big>(</big><big>)</big><a class="headerlink" href="#batchhttp.client.WeakCallback.alive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether the callable referent of this <cite>WeakCallback</cite>
+instance is still held.</p>
+<p>If all other strong references to the instance to which this method is
+bound are released, the instance will be collected and this method
+will return <cite>False</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="batchhttp.client.WeaklyBoundMethod">
+<em class="property">
+class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">WeaklyBoundMethod</tt><big>(</big><em>method</em><big>)</big><a class="headerlink" href="#batchhttp.client.WeaklyBoundMethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>A bound method that only weakly holds the instance to which it&#8217;s bound.</p>
+<p>A <cite>WeaklyBoundMethod</cite> instance is similar to a regular <cite>instancemethod</cite>,
+but if all other references to the method&#8217;s object are released, the
+method &#8220;dies&#8221; and can no longer be invoked.</p>
+<p>This implementation is inspired by Peter Parente&#8217;s article and example
+implementation at <a class="reference external" href="http://mindtrove.info/articles/python-weak-references/">http://mindtrove.info/articles/python-weak-references/</a> .</p>
+<dl class="method">
+<dt id="batchhttp.client.WeaklyBoundMethod.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>method</em><big>)</big><a class="headerlink" href="#batchhttp.client.WeaklyBoundMethod.__init__" title="Permalink to this definition">¶</a></dt>
+<dd>Configures this <cite>WeaklyBoundMethod</cite> to be otherwise equivalent to
+the <cite>method</cite> parameter, an <cite>instancemethod</cite>.</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.WeaklyBoundMethod.alive">
+<tt class="descname">alive</tt><big>(</big><big>)</big><a class="headerlink" href="#batchhttp.client.WeaklyBoundMethod.alive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether this <cite>WeaklyBoundMethod</cite> instance still holds its
+referent.</p>
+<p>If all other strong references to the instance to which this method is
+bound are released, the instance will be collected and this method
+will return <cite>False</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html"
+                                  title="previous chapter">batchhttp</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="multipart.html"
+                                  title="next chapter">HTTP Multipart Utilities</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="sources/client.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="multipart.html" title="HTTP Multipart Utilities"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="batchhttp"
+             >previous</a> |</li>
+        <li><a href="index.html">batchhttp v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>

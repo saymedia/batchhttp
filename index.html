@@ -1,0 +1,205 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>batchhttp &mdash; batchhttp v1.0 documentation</title>
+    <link rel="stylesheet" href="static/default.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="batchhttp v1.0 documentation" href="" />
+    <link rel="next" title="The batch HTTP client" href="client.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="client.html" title="The batch HTTP client"
+             accesskey="N">next</a> |</li>
+        <li><a href="">batchhttp v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-batchhttp">
+<h1>batchhttp<a class="headerlink" href="#module-batchhttp" title="Permalink to this headline">¶</a></h1>
+<p>batchhttp provides parallel fetching of HTTP resources through MIME multipart
+encoding.</p>
+<p>This package&#8217;s <cite>BatchClient</cite> applies standard MIME multipart encoding to HTTP
+messages, providing a standards-conservant technique for making parallelizable
+HTTP requests over a single proxy connection.</p>
+<p>To make a batch request, open a new request on a <cite>BatchClient</cite> instance and
+add your subrequests, along with callbacks that will receive the subresponses.
+Once all parallelized requests are added, complete the request; the request is
+made and the batched subresponses are provided to your callbacks.</p>
+</div>
+<div class="section" id="module-batchhttp.client">
+<h1><cite>BatchClient</cite><a class="headerlink" href="#module-batchhttp.client" title="Permalink to this headline">¶</a></h1>
+<p>The batch HTTP client provides a convenience interface around an
+<cite>httplib2.Http</cite> instance for combining multiple requests into one MIME-encoded
+batch request, dispatching the subresponses to the requests&#8217; associated
+callbacks.</p>
+<dl class="class">
+<dt id="batchhttp.client.BatchClient">
+<em class="property">
+class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">BatchClient</tt><big>(</big><em>endpoint=None</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sort of an HTTP client for performing a batch HTTP request.</p>
+<dl class="method">
+<dt id="batchhttp.client.BatchClient.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>endpoint=None</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configures the <cite>BatchClient</cite> instance to use the given batch
+processor endpoint.</p>
+<p>Parameter <cite>endpoint</cite> is the base URL at which to find the batch
+processor to which to submit the batch request. The batch processor
+should be the resource <tt class="docutils literal"><span class="pre">/batch-processor</span></tt> at the root of the site
+specified in <cite>endpoint</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchClient.batch">
+<tt class="descname">batch</tt><big>(</big><em>reqinfo</em>, <em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given subrequest to the batch request.</p>
+<p>Parameter <cite>reqinfo</cite> is the HTTP request to perform, specified as a
+mapping of keyword arguments suitable for passing to an
+<cite>httplib2.Http.request()</cite> call.</p>
+<p>Parameter <cite>callback</cite> is the callable object to which to supply the
+subresponse once the batch request is performed. No strong reference
+to <cite>callback</cite> is kept by the <cite>Request</cite> instance, so unless it (or its
+bound instance, if it&#8217;s an <cite>instancemethod</cite>) continues to be
+referenced elsewhere, the subrequest will be omitted from the batch
+request and <cite>callback</cite> will not be called with a subresponse.</p>
+<p>If no batch request is open, a <cite>BatchError</cite> is raised.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchClient.batch_request">
+<tt class="descname">batch_request</tt><big>(</big><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.batch_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a batch request.</p>
+<p>If a batch request is already open, a <cite>BatchError</cite> is raised.</p>
+<p>In Python 2.5 or later, you can use this method with the <tt class="docutils literal"><span class="pre">with</span></tt>
+statement:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">client</span><span class="o">.</span><span class="n">batch_request</span><span class="p">():</span>
+</pre></div>
+</div>
+<p>...     client.batch({&#8216;uri&#8217;: uri}, callback=handle_result)</p>
+<p>The batch request is then completed automatically at the end of the
+<tt class="docutils literal"><span class="pre">with</span></tt> block.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchClient.clear_batch">
+<tt class="descname">clear_batch</tt><big>(</big><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.clear_batch" title="Permalink to this definition">¶</a></dt>
+<dd>Closes a batch request without performing it.</dd></dl>
+
+<dl class="method">
+<dt id="batchhttp.client.BatchClient.complete_batch">
+<tt class="descname">complete_batch</tt><big>(</big><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.complete_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes a batch request, submitting it and dispatching the
+subresponses.</p>
+<p>If no batch request is open, a <cite>BatchError</cite> is raised.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="package-contents">
+<h1>Package contents<a class="headerlink" href="#package-contents" title="Permalink to this headline">¶</a></h1>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="client.html">The batch HTTP client</a></li>
+<li class="toctree-l1"><a class="reference external" href="multipart.html">HTTP Multipart Utilities</a></li>
+</ul>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference external" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference external" href="modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference external" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">batchhttp</a></li>
+<li><a class="reference external" href="#module-batchhttp.client"><cite>BatchClient</cite></a></li>
+<li><a class="reference external" href="#package-contents">Package contents</a><ul>
+</ul>
+</li>
+<li><a class="reference external" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+            <h4>Next topic</h4>
+            <p class="topless"><a href="client.html"
+                                  title="next chapter">The batch HTTP client</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="sources/index.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="client.html" title="The batch HTTP client"
+             >next</a> |</li>
+        <li><a href="">batchhttp v1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>
