@@ -6,7 +6,7 @@ setup(
     description='HTTP Request Batching',
     author='Six Apart',
     author_email='python@sixapart.com',
-    url='http://code.sixapart.com/svn/batchhttp-py/',
+    url='http://sixapart.github.com/batchhttp/',
 
     packages=['batchhttp'],
     provides=['batchhttp'],
