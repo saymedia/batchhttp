@@ -9,3 +9,8 @@ To make a batch request, open a new request on a `BatchClient` instance and
 add your subrequests, along with callbacks that will receive the subresponses.
 Once all parallelized requests are added, complete the request; the request is
 made and the batched subresponses are provided to your callbacks.
+
+This is an implementation of the draft specification for batch HTTP request
+processing available at:
+
+    http://martin.atkins.me.uk/specs/batchhttp
