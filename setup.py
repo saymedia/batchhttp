@@ -29,7 +29,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from distutils.core import setup
+from setuptools import setup
 setup(
     name='batchhttp',
     version='1.1a1',
@@ -41,4 +41,5 @@ setup(
     packages=['batchhttp'],
     provides=['batchhttp'],
     requires=['httplib2(>=0.4.0)'],
+    install_requires=['httplib2>=0.4.0'],
 )
