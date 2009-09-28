@@ -48,7 +48,7 @@ processing available at:
 
 """
 
-__version__ = '1.0a1'
+__version__ = '1.1a1'
 __date__ = '20 April 2009'
 __author__ = 'Six Apart Ltd.'
 __credits__ = """Brad Choate

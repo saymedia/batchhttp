@@ -32,7 +32,7 @@
 from distutils.core import setup
 setup(
     name='batchhttp',
-    version='1.0a1',
+    version='1.1a1',
     description='HTTP Request Batching',
     author='Six Apart Ltd.',
     author_email='python@sixapart.com',
