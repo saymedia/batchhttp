@@ -31,11 +31,6 @@
 
 from setuptools import setup
 from os.path import join, dirname
-
-class LongDescription(object):
-    def __str__(self):
-        return open(join(dirname(__file__), 'README.rst')).read()
-
 setup(
     name='batchhttp',
     version='1.1a1',
@@ -44,7 +39,7 @@ setup(
     author_email='python@sixapart.com',
     url='http://sixapart.github.com/batchhttp/',
 
-    long_description=LongDescription(),
+    long_description=open(join(dirname(__file__), 'README.rst')).read(),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
