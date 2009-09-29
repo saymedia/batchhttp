@@ -38,6 +38,18 @@ setup(
     author_email='python@sixapart.com',
     url='http://sixapart.github.com/batchhttp/',
 
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP',
+    ],
+
     packages=['batchhttp'],
     provides=['batchhttp'],
     requires=['httplib2(>=0.4.0)'],
