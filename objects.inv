@@ -1,6 +1,6 @@
 # Sphinx inventory version 1
 # Project: batchhttp
-# Version: 1.0
+# Version: 1.1
 batchhttp mod index.html
 batchhttp.client mod index.html
 batchhttp.multipart mod multipart.html
