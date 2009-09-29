@@ -37,7 +37,7 @@ setup(
     description='HTTP Request Batching',
     author='Six Apart Ltd.',
     author_email='python@sixapart.com',
-    url='http://sixapart.github.com/batchhttp/',
+    url='http://github.com/sixapart/batchhttp',
 
     long_description=open(join(dirname(__file__), 'README.rst')).read(),
     classifiers=[
