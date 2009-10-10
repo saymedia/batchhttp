@@ -29,16 +29,31 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from distutils.core import setup
+from setuptools import setup
+from os.path import join, dirname
 setup(
     name='batchhttp',
-    version='1.0a1',
+    version='1.1a1',
     description='HTTP Request Batching',
     author='Six Apart Ltd.',
     author_email='python@sixapart.com',
-    url='http://sixapart.github.com/batchhttp/',
+    url='http://github.com/sixapart/batchhttp',
+
+    long_description=open(join(dirname(__file__), 'README.rst')).read(),
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP',
+    ],
 
     packages=['batchhttp'],
     provides=['batchhttp'],
     requires=['httplib2(>=0.4.0)'],
+    install_requires=['httplib2>=0.4.0'],
 )
