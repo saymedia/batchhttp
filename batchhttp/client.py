@@ -332,7 +332,7 @@ class Request(object):
         host = parts[1]
 
         # Use whole URL in request line per HTTP/1.1 5.1.2 (proxy behavior).
-        requesttext = "GET %s HTTP/1.1\r\n" % url
+        requesttext = "%s %s HTTP/1.1\r\n" % (objreq['method'], url)
         headers['host'] = host
         # Prevent compression as it's unlikely to survive batching.
         headers['accept-encoding'] = 'identity'
