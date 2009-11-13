@@ -554,7 +554,7 @@ class BatchClient(httplib2.Http):
 
     """Sort of an HTTP client for performing a batch HTTP request."""
 
-    def __init__(self, endpoint=None):
+    def __init__(self, endpoint=None, **kwargs):
         """Configures the `BatchClient` instance to use the given batch
         processor endpoint.
 
@@ -565,7 +565,7 @@ class BatchClient(httplib2.Http):
 
         """
         self.endpoint = endpoint
-        super(BatchClient, self).__init__()
+        super(BatchClient, self).__init__(**kwargs)
 
     def batch_request(self):
         """Opens a batch request.
