@@ -39,7 +39,7 @@ except Exception:
 
 setup(
     name='batchhttp',
-    version='1.1a1',
+    version='1.1',
     description='Parallel HTTP through MIME multipart encoding',
     author='Six Apart Ltd.',
     author_email='python@sixapart.com',
