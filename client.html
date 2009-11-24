@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The batch HTTP client &mdash; batchhttp v1.1a1 documentation</title>
+    <title>The batch HTTP client &mdash; batchhttp v1.1 documentation</title>
     <link rel="stylesheet" href="static/default.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1a1',
+        VERSION:     '1.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="batchhttp v1.1a1 documentation" href="index.html" />
+    <link rel="top" title="batchhttp v1.1 documentation" href="index.html" />
     <link rel="next" title="HTTP Multipart Utilities" href="multipart.html" />
     <link rel="prev" title="batchhttp" href="index.html" /> 
   </head>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="index.html" title="batchhttp"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">batchhttp v1.1a1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">batchhttp v1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -56,12 +56,11 @@ batch request, dispatching the subresponses to the requests&#8217; associated
 callbacks.</p>
 <dl class="class">
 <dt id="batchhttp.client.BatchClient">
-<em class="property">
-class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">BatchClient</tt><big>(</big><em>endpoint=None</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">BatchClient</tt><big>(</big><em>endpoint=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sort of an HTTP client for performing a batch HTTP request.</p>
 <dl class="method">
 <dt id="batchhttp.client.BatchClient.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>endpoint=None</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.__init__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__init__</tt><big>(</big><em>endpoint=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#batchhttp.client.BatchClient.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Configures the <cite>BatchClient</cite> instance to use the given batch
 processor endpoint.</p>
 <p>Parameter <cite>endpoint</cite> is the base URL at which to find the batch
@@ -118,15 +117,13 @@ subresponses.</p>
 
 <dl class="exception">
 <dt id="batchhttp.client.BatchError">
-<em class="property">
-exception </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">BatchError</tt><a class="headerlink" href="#batchhttp.client.BatchError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">BatchError</tt><a class="headerlink" href="#batchhttp.client.BatchError" title="Permalink to this definition">¶</a></dt>
 <dd>An Exception raised when the <cite>BatchClient</cite> cannot open, add, or
 complete a batch request.</dd></dl>
 
 <dl class="class">
 <dt id="batchhttp.client.BatchRequest">
-<em class="property">
-class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">BatchRequest</tt><a class="headerlink" href="#batchhttp.client.BatchRequest" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">BatchRequest</tt><a class="headerlink" href="#batchhttp.client.BatchRequest" title="Permalink to this definition">¶</a></dt>
 <dd><p>A collection of HTTP responses that should be performed in a batch as
 one response.</p>
 <dl class="method">
@@ -180,15 +177,13 @@ can deliver their subresponses, no batch request will occur.</p>
 
 <dl class="exception">
 <dt id="batchhttp.client.NonBatchResponseError">
-<em class="property">
-exception </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">NonBatchResponseError</tt><big>(</big><em>status</em>, <em>reason</em><big>)</big><a class="headerlink" href="#batchhttp.client.NonBatchResponseError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">NonBatchResponseError</tt><big>(</big><em>status</em>, <em>reason</em><big>)</big><a class="headerlink" href="#batchhttp.client.NonBatchResponseError" title="Permalink to this definition">¶</a></dt>
 <dd>An exception raised when the <cite>BatchClient</cite> receives a response 
 with an HTTP status code other than 207.</dd></dl>
 
 <dl class="class">
 <dt id="batchhttp.client.Request">
-<em class="property">
-class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">Request</tt><big>(</big><em>reqinfo</em>, <em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.Request" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">Request</tt><big>(</big><em>reqinfo</em>, <em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.Request" title="Permalink to this definition">¶</a></dt>
 <dd><p>A subrequest of a batched HTTP request.</p>
 <p>A batch request comprises one or more <cite>Request</cite> instances. Once the batch
 request is performed, the subresponses and their contents are dispatched
@@ -257,8 +252,7 @@ subresponse cannot be decoded properly, a <cite>BatchError</cite> is raised.</p>
 
 <dl class="class">
 <dt id="batchhttp.client.WeakCallback">
-<em class="property">
-class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">WeakCallback</tt><big>(</big><em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.WeakCallback" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">WeakCallback</tt><big>(</big><em>callback</em><big>)</big><a class="headerlink" href="#batchhttp.client.WeakCallback" title="Permalink to this definition">¶</a></dt>
 <dd><p>A callback that is held through a weak reference.</p>
 <p>Using <cite>WeakCallback</cite> to hold an <cite>instancemethod</cite> will probably not do what
 you mean, as <cite>instancemethod</cite> instances are created on demand when you use
@@ -284,8 +278,7 @@ will return <cite>False</cite>.</p>
 
 <dl class="class">
 <dt id="batchhttp.client.WeaklyBoundMethod">
-<em class="property">
-class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">WeaklyBoundMethod</tt><big>(</big><em>method</em><big>)</big><a class="headerlink" href="#batchhttp.client.WeaklyBoundMethod" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">batchhttp.client.</tt><tt class="descname">WeaklyBoundMethod</tt><big>(</big><em>method</em><big>)</big><a class="headerlink" href="#batchhttp.client.WeaklyBoundMethod" title="Permalink to this definition">¶</a></dt>
 <dd><p>A bound method that only weakly holds the instance to which it&#8217;s bound.</p>
 <p>A <cite>WeaklyBoundMethod</cite> instance is similar to a regular <cite>instancemethod</cite>,
 but if all other references to the method&#8217;s object are released, the
@@ -361,12 +354,12 @@ will return <cite>False</cite>.</p>
         <li class="right" >
           <a href="index.html" title="batchhttp"
              >previous</a> |</li>
-        <li><a href="index.html">batchhttp v1.1a1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">batchhttp v1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2009, Six Apart Ltd..
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
     </div>
   </body>
 </html>
