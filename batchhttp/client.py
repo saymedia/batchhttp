@@ -284,6 +284,9 @@ class Request(object):
                 def getresponse(self):
                     return self
 
+                def close(self):
+                    pass
+
                 def __getattr__(self, key):
                     return getattr(response, key)
 
