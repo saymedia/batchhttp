@@ -242,11 +242,17 @@ class Request(object):
                     return self.http
 
             class CaptureHTTPConnection(object):
+                def connect(self):
+                    pass
+
                 def request(self, method, request_uri, body, headers):
                     self.url     = request_uri
                     self.body    = body
                     self.headers = headers
                     raise StopCharade()
+
+                def close(self):
+                    pass
 
             real_connections = http.connections
             conns = CaptureConnections()
@@ -275,6 +281,9 @@ class Request(object):
                     return self.http
 
             class HandoffHTTPConnection(object):
+                def connect(self):
+                    pass
+
                 def request(self, method, request_uri, body, headers):
                     pass
 
