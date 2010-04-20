@@ -1,6 +1,11 @@
 batchhttp Changelog
 ===================
 
+1.1.1 (2010-04-20)
+------------------
+
+* Fixed compatibility with new versions of httplib2 0.6.0 or greater.
+
 1.1 (2009-11-24)
 ----------------
 

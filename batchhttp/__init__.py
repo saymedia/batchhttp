@@ -48,8 +48,8 @@ processing available at:
 
 """
 
-__version__ = '1.1'
-__date__ = '24 November 2009'
+__version__ = '1.1.1'
+__date__ = '20 April 2010'
 __author__ = 'Six Apart Ltd.'
 __credits__ = """Brad Choate
 Mike Malone
