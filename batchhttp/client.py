@@ -411,8 +411,9 @@ class BatchRequest(object):
     """A collection of HTTP responses that should be performed in a batch as
     one response."""
 
-    def __init__(self):
+    def __init__(self, headers=None):
         self.requests = list()
+        self.headers = headers
 
     def __len__(self):
         """Returns the number of subrequests there are to perform.
@@ -451,6 +452,8 @@ class BatchRequest(object):
 
         """
         headers, body = self.construct(http)
+        if self.headers:
+            headers.update(self.headers)
         if headers and body:
             batch_url = urljoin(endpoint, '/batch-processor')
             response, content = http.request(batch_url, body=body, method="POST", headers=headers)
@@ -579,7 +582,7 @@ class BatchClient(httplib2.Http):
         self.endpoint = endpoint
         super(BatchClient, self).__init__(**kwargs)
 
-    def batch_request(self):
+    def batch_request(self, headers=None):
         """Opens a batch request.
 
         If a batch request is already open, a `BatchError` is raised.
@@ -593,6 +596,9 @@ class BatchClient(httplib2.Http):
         The batch request is then completed automatically at the end of the
         ``with`` block.
 
+        You may use the headers parameter to supply additional headers that are
+        specific to this batch request. This may be useful if your batch
+        processor uses headers for authentication purposes, for example.
         """
         import traceback
         if hasattr(self, 'batchrequest'):
@@ -601,7 +607,7 @@ class BatchClient(httplib2.Http):
                 + ''.join(traceback.format_list(self._opened)))
             log.debug('New now at:\n' + ''.join(traceback.format_stack()))
             raise BatchError("There's already an open batch request")
-        self.batchrequest = BatchRequest()
+        self.batchrequest = BatchRequest(headers=headers)
         self._opened = traceback.extract_stack()
 
         # Return ourself so we can enter a "with" context.
