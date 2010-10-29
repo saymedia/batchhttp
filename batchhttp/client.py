@@ -452,7 +452,7 @@ class BatchRequest(object):
 
         """
         headers, body = self.construct(http)
-        if self.headers:
+        if self.headers and headers:
             headers.update(self.headers)
         if headers and body:
             batch_url = urljoin(endpoint, '/batch-processor')
