@@ -468,7 +468,7 @@ class BatchRequest(object):
 
         """
         if not len(self):
-            log.warning('No requests were made for the batch')
+            log.debug('No requests were made for the batch')
             return None, None
 
         msg = MultipartHTTPMessage()
@@ -625,7 +625,7 @@ class BatchClient(httplib2.Http):
         if self.endpoint is None:
             raise BatchError("There's no batch processor endpoint to which to send a batch request")
         try:
-            log.warning('Making batch request for %d items' % len(self.batchrequest))
+            log.debug('Making batch request for %d items' % len(self.batchrequest))
             self.batchrequest.process(self, self.endpoint)
         finally:
             del self.batchrequest
