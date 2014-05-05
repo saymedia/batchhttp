@@ -13,4 +13,7 @@ made and the batched subresponses are provided to your callbacks.
 This is an implementation of the draft specification for batch HTTP request
 processing available at:
 
-    http://martin.atkins.me.uk/specs/batchhttp
+    https://github.com/apparentlymart/http-batch-specs/blob/master/batchhttp.xml
+
+This specification is now largely abandoned and this library is now primarily
+of historical interest only.
